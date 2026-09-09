@@ -1,0 +1,3 @@
+# Finales de linea LF en todo el repo. Databricks Repos corre sobre Linux y
+# los notebooks se editan tanto desde el workspace como desde Windows.
+* text=auto eol=lf

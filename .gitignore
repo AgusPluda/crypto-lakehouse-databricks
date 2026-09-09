@@ -1,0 +1,38 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+dist/
+*.egg-info/
+.ipynb_checkpoints/
+
+# ---------- Entornos virtuales ----------
+.venv/
+venv/
+env/
+ENV/
+
+# ---------- Secretos / config local ----------
+.env
+*.pem
+# El Databricks CLI guarda tokens/OAuth en un profile local.
+.databrickscfg
+# Secrets de la app espejo en Streamlit Community Cloud.
+.streamlit/secrets.toml
+
+# ---------- Databricks ----------
+.databricks/
+.databricks-bundle/
+
+# ---------- MLflow local ----------
+mlruns/
+
+# ---------- Editores / SO ----------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
