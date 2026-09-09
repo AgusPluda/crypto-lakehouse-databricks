@@ -66,7 +66,7 @@ mostrar permisos distintos por capa:
 
 ## Roadmap de fases
 
-- [ ] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
+- [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
 - [ ] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
 - [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` + versión declarativa `AUTO CDC`), scraping de artículos completos para el corpus del RAG.
 - [ ] **Fase 3 — Gold.** Marts agregados (diseño en detalle pendiente).
@@ -100,5 +100,6 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fase 0, en curso.** El diseño de las Fases 0–2 y de la 4/7 está cerrado; la Fase 3 (Gold) queda
-pendiente de diseñar en detalle. Todavía no se implementó nada en el workspace.
+**Fase 0 hecha.** Catalog `crypto_lakehouse` y los 5 schemas creados en el workspace. El diseño de
+las Fases 1–2 y de la 4/7 está cerrado; la Fase 3 (Gold) queda pendiente de diseñar en detalle.
+Próximo paso: Fase 1 (ingesta Bronze).
