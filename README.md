@@ -67,7 +67,7 @@ mostrar permisos distintos por capa:
 ## Roadmap de fases
 
 - [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
-- [ ] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
+- [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
 - [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` + versión declarativa `AUTO CDC`), scraping de artículos completos para el corpus del RAG.
 - [ ] **Fase 3 — Gold.** Marts agregados (diseño en detalle pendiente).
 - [ ] **Fase 4 — Visualización.** AI/BI Dashboard nativo + Genie Space, más una Databricks App (Streamlit).
@@ -100,6 +100,7 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fase 1 en curso.** Fase 0 hecha (catalog + 5 schemas). Ingesta de precios lista: `bronze.prices_raw`
-carga el top 25 de CoinGecko por snapshot (append-only, schema explícito, API key en un secret scope).
-Falta el segundo job de Fase 1 (noticias RSS). La Fase 3 (Gold) sigue pendiente de diseñar en detalle.
+**Fase 1 completa.** Fase 0 hecha (catalog + 5 schemas). Ingesta Bronze funcionando: `bronze.prices_raw`
+(top 25 de CoinGecko por snapshot) y `bronze.news_raw` (3 feeds RSS). Ambos con schema explícito,
+append-only, API key en un secret scope. Los notebooks se corren a mano; la orquestación es Fase 8.
+Próximo paso: Fase 2 (Silver), o diseñar en detalle la Fase 3 (Gold) que sigue pendiente.
