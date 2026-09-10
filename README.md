@@ -100,6 +100,6 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fase 0 hecha.** Catalog `crypto_lakehouse` y los 5 schemas creados en el workspace. El diseño de
-las Fases 1–2 y de la 4/7 está cerrado; la Fase 3 (Gold) queda pendiente de diseñar en detalle.
-Próximo paso: Fase 1 (ingesta Bronze).
+**Fase 1 en curso.** Fase 0 hecha (catalog + 5 schemas). Ingesta de precios lista: `bronze.prices_raw`
+carga el top 25 de CoinGecko por snapshot (append-only, schema explícito, API key en un secret scope).
+Falta el segundo job de Fase 1 (noticias RSS). La Fase 3 (Gold) sigue pendiente de diseñar en detalle.
