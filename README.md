@@ -100,7 +100,7 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fase 1 completa.** Fase 0 hecha (catalog + 5 schemas). Ingesta Bronze funcionando: `bronze.prices_raw`
-(top 25 de CoinGecko por snapshot) y `bronze.news_raw` (3 feeds RSS). Ambos con schema explícito,
-append-only, API key en un secret scope. Los notebooks se corren a mano; la orquestación es Fase 8.
-Próximo paso: Fase 2 (Silver), o diseñar en detalle la Fase 3 (Gold) que sigue pendiente.
+**Fase 2 en curso.** Fase 0 + Fase 1 completas. Silver de precios listo: `silver.crypto_prices` (tabla
+de hechos, 1 fila por `asset_id` + `snapshot_ts`, carga incremental por anti-join). Faltan
+`silver.dim_asset` (SCD Type 2) y `silver.crypto_news` (dedup + scraping). La Fase 3 (Gold) sigue
+pendiente de diseñar en detalle.
