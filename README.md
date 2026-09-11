@@ -100,7 +100,7 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fase 2 en curso.** Fase 0 + Fase 1 completas. `silver.crypto_prices` (tabla de hechos) y
-`silver.dim_asset` (dimensión SCD Type 2 de membership, versión manual con `MERGE`) listos. Falta
-`silver.dim_asset` declarativo (`AUTO CDC`, Lakeflow Pipeline aparte) y `silver.crypto_news` (dedup +
-scraping). La Fase 3 (Gold) sigue pendiente de diseñar en detalle.
+**Fase 2 casi completa.** Fase 0 + Fase 1 completas. `silver.crypto_prices`, `silver.dim_asset`
+(versión manual con `MERGE`) y `silver.crypto_news` (dedup + scraping con `trafilatura`) listos. Falta
+sólo `silver.dim_asset` declarativo (`AUTO CDC`, Lakeflow Pipeline aparte, sesión dedicada). La Fase 3
+(Gold) sigue pendiente de diseñar en detalle.
