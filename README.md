@@ -71,7 +71,7 @@ mostrar permisos distintos por capa:
 - [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código escrito, en troubleshooting, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Streamlit) se arma cuando exista el agente de la Fase 7.
-- [ ] **Fase 5 — ML + MLflow.** Modelo tabular sobre el dominio, reentrenado por Job, registrado en UC con alias `champion`.
+- [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
 - [ ] **Fase 6 — RAG.** Índice de Vector Search sobre las noticias, chain con LangChain, registrada en UC.
 - [ ] **Fase 7 — Agente de IA.** Tools SQL sobre Gold + retrieval RAG; AI Playground → Agent Framework → Model Serving. La app de la Fase 4 es su chat UI.
 - [ ] **Fase 8 — Orquestación + documentación.** Jobs con dependencias entre fases (escalonados por el límite de 5 tareas concurrentes) + lineage completo en Catalog Explorer como pieza central del README.
@@ -100,13 +100,13 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1, 3 y 4 completas; Fase 2 completa salvo la versión declarativa de `dim_asset`, en
-troubleshooting.** `silver.crypto_prices`, `silver.dim_asset` (versión manual con `MERGE`) y
-`silver.crypto_news` (dedup + scraping con `trafilatura`) listos. La versión declarativa
-(`AUTO CDC FROM SNAPSHOT`) tiene el código escrito; se diagnosticó y resolvió un error de catalog (un
-artefacto interno del pipeline había quedado en el catalog equivocado), pero el pipeline todavía no
-corre a éxito — se queda sin progresar una vez que arranca, causa sin diagnosticar todavía (ver el
-README de esa carpeta). Los 3 marts de Gold están armados, con el AI/BI Dashboard (4 KPIs + leaderboard
-+ movers del día + salud del pipeline de noticias) y el Genie Space publicados y verificados. Falta la
-Databricks App, que espera al agente de la Fase 7. Próximo: Fase 5 (ML + MLflow) o retomar el
-troubleshooting de `dim_asset` declarativo.
+**Fases 0, 1, 3 y 4 completas; Fase 2 y Fase 5 completas salvo un paso cada una bloqueado por un
+factor externo (no por diseño).** `silver.crypto_prices`, `silver.dim_asset` (versión manual con
+`MERGE`) y `silver.crypto_news` (dedup + scraping con `trafilatura`) listos. La versión declarativa de
+`dim_asset` (`AUTO CDC FROM SNAPSHOT`) tiene el código escrito y el error de catalog resuelto, pero
+el pipeline todavía no corre a éxito (ver su README). Los 3 marts de Gold, el AI/BI Dashboard y el
+Genie Space están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`,
+con `FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
+datos verificada, pero todavía no corrió a éxito — necesita ≥2 días de historia en
+`gold.asset_daily_summary`, que se van a acumular solos con la Fase 8. Falta la Databricks App
+(espera al agente de la Fase 7). Próximo: Fase 6 (RAG) o retomar cualquiera de los dos pendientes.
