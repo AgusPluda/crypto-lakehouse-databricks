@@ -68,8 +68,8 @@ mostrar permisos distintos por capa:
 
 - [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
-- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` + versión declarativa `AUTO CDC`), scraping de artículos completos para el corpus del RAG.
-- [ ] **Fase 3 — Gold.** Marts agregados (diseño en detalle pendiente).
+- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC` pendiente), scraping de artículos completos para el corpus del RAG.
+- [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [ ] **Fase 4 — Visualización.** AI/BI Dashboard nativo + Genie Space, más una Databricks App (Streamlit).
 - [ ] **Fase 5 — ML + MLflow.** Modelo tabular sobre el dominio, reentrenado por Job, registrado en UC con alias `champion`.
 - [ ] **Fase 6 — RAG.** Índice de Vector Search sobre las noticias, chain con LangChain, registrada en UC.
@@ -100,7 +100,8 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fase 2 casi completa.** Fase 0 + Fase 1 completas. `silver.crypto_prices`, `silver.dim_asset`
-(versión manual con `MERGE`) y `silver.crypto_news` (dedup + scraping con `trafilatura`) listos. Falta
-sólo `silver.dim_asset` declarativo (`AUTO CDC`, Lakeflow Pipeline aparte, sesión dedicada). La Fase 3
-(Gold) sigue pendiente de diseñar en detalle.
+**Fases 0, 1 y 3 completas; Fase 2 casi completa.** `silver.crypto_prices`, `silver.dim_asset` (versión
+manual con `MERGE`) y `silver.crypto_news` (dedup + scraping con `trafilatura`) listos — falta sólo
+`dim_asset` declarativo (`AUTO CDC`, Lakeflow Pipeline aparte, sesión dedicada). Los 3 marts de Gold
+(`asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`) están armados. Próximo: Fase 4
+(dashboard + apps) o la sesión de Lakeflow Pipelines.
