@@ -13,4 +13,8 @@ Create → Import dashboard from file.
 | Movers del día | Barras | `gold.asset_daily_summary` |
 | Salud del pipeline de noticias | Barras apiladas por `source` | `gold.news_pipeline_health` |
 
-Genie Space: pendiente.
+## Genie Space
+
+**"Cryptocurrency Market Overview"**, sobre las mismas 3 tablas de `gold`. Verificado con la pregunta
+"¿Qué activo tuvo la mayor caída en las últimas 24hs?" — respondió Bitcoin Cash (-11.59%), coincide
+exactamente con el KPI del dashboard, y armó su propio gráfico de contexto (top 10 con mayor caída).
