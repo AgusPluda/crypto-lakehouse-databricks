@@ -68,7 +68,7 @@ mostrar permisos distintos por capa:
 
 - [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
-- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC` pendiente), scraping de artículos completos para el corpus del RAG.
+- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código listo, bloqueada por un bug de Free Edition, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [ ] **Fase 4 — Visualización.** AI/BI Dashboard nativo + Genie Space, más una Databricks App (Streamlit).
 - [ ] **Fase 5 — ML + MLflow.** Modelo tabular sobre el dominio, reentrenado por Job, registrado en UC con alias `champion`.
@@ -100,8 +100,10 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1 y 3 completas; Fase 2 casi completa.** `silver.crypto_prices`, `silver.dim_asset` (versión
-manual con `MERGE`) y `silver.crypto_news` (dedup + scraping con `trafilatura`) listos — falta sólo
-`dim_asset` declarativo (`AUTO CDC`, Lakeflow Pipeline aparte, sesión dedicada). Los 3 marts de Gold
-(`asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`) están armados. Próximo: Fase 4
-(dashboard + apps) o la sesión de Lakeflow Pipelines.
+**Fases 0, 1 y 3 completas; Fase 2 completa salvo un bug de plataforma.** `silver.crypto_prices`,
+`silver.dim_asset` (versión manual con `MERGE`) y `silver.crypto_news` (dedup + scraping con
+`trafilatura`) listos. La versión declarativa de `dim_asset` (`AUTO CDC FROM SNAPSHOT`) tiene el código
+escrito pero no corre — un bug reconocido de Unity Catalog en Databricks Free Edition
+("Arclight", ver el README de esa carpeta) bloquea la inicialización de cualquier Lakeflow Pipeline en
+este workspace por ahora. Los 3 marts de Gold (`asset_daily_summary`, `dim_asset_current`,
+`news_pipeline_health`) están armados. Próximo: Fase 4 (dashboard + apps).
