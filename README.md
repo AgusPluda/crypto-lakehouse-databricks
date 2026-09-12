@@ -70,7 +70,7 @@ mostrar permisos distintos por capa:
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
 - [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código escrito, en troubleshooting, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
-- [ ] **Fase 4 — Visualización.** AI/BI Dashboard nativo + Genie Space, más una Databricks App (Streamlit).
+- [ ] **Fase 4 — Visualización.** AI/BI Dashboard nativo ✅ (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space (pendiente), más una Databricks App (Streamlit) — se arma cuando exista el agente de la Fase 7.
 - [ ] **Fase 5 — ML + MLflow.** Modelo tabular sobre el dominio, reentrenado por Job, registrado en UC con alias `champion`.
 - [ ] **Fase 6 — RAG.** Índice de Vector Search sobre las noticias, chain con LangChain, registrada en UC.
 - [ ] **Fase 7 — Agente de IA.** Tools SQL sobre Gold + retrieval RAG; AI Playground → Agent Framework → Model Serving. La app de la Fase 4 es su chat UI.
@@ -100,11 +100,12 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1 y 3 completas; Fase 2 completa salvo la versión declarativa de `dim_asset`, en
-troubleshooting.** `silver.crypto_prices`, `silver.dim_asset` (versión manual con `MERGE`) y
-`silver.crypto_news` (dedup + scraping con `trafilatura`) listos. La versión declarativa
-(`AUTO CDC FROM SNAPSHOT`) tiene el código escrito; se diagnosticó y resolvió un error de catalog
-(un artefacto interno del pipeline había quedado en el catalog equivocado), pero el pipeline todavía no
+**Fases 0, 1 y 3 completas; Fase 4 en curso; Fase 2 completa salvo la versión declarativa de
+`dim_asset`, en troubleshooting.** `silver.crypto_prices`, `silver.dim_asset` (versión manual con
+`MERGE`) y `silver.crypto_news` (dedup + scraping con `trafilatura`) listos. La versión declarativa
+(`AUTO CDC FROM SNAPSHOT`) tiene el código escrito; se diagnosticó y resolvió un error de catalog (un
+artefacto interno del pipeline había quedado en el catalog equivocado), pero el pipeline todavía no
 corre a éxito — se queda sin progresar una vez que arranca, causa sin diagnosticar todavía (ver el
-README de esa carpeta). Los 3 marts de Gold (`asset_daily_summary`, `dim_asset_current`,
-`news_pipeline_health`) están armados. Próximo: Fase 4 (dashboard + apps).
+README de esa carpeta). Los 3 marts de Gold están armados. El AI/BI Dashboard sobre Gold está publicado
+(4 KPIs + leaderboard + movers del día + salud del pipeline de noticias); falta el Genie Space y la
+Databricks App (que espera al agente de la Fase 7).

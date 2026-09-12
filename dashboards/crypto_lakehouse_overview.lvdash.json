@@ -1,0 +1,514 @@
+{
+  "datasets": [
+    {
+      "name": "ae6699b9",
+      "displayName": "leaderboard",
+      "queryLines": [
+        "SELECT\r\n",
+        "  rank_at_snapshot,\r\n",
+        "  symbol,\r\n",
+        "  name,\r\n",
+        "  current_price,\r\n",
+        "  market_cap,\r\n",
+        "  price_change_percentage_24h,\r\n",
+        "  ath_change_percentage\r\n",
+        "FROM crypto_lakehouse.gold.dim_asset_current\r\n",
+        "ORDER BY rank_at_snapshot;"
+      ]
+    },
+    {
+      "name": "2946d2f9",
+      "displayName": "KPIs",
+      "queryLines": [
+        "WITH agg AS (\r\n",
+        "  SELECT SUM(market_cap) AS market_cap_total\r\n",
+        "  FROM crypto_lakehouse.gold.dim_asset_current\r\n",
+        "),\r\n",
+        "gainer AS (\r\n",
+        "  SELECT symbol, price_change_percentage_24h\r\n",
+        "  FROM crypto_lakehouse.gold.dim_asset_current\r\n",
+        "  ORDER BY price_change_percentage_24h DESC\r\n",
+        "  LIMIT 1\r\n",
+        "),\r\n",
+        "loser AS (\r\n",
+        "  SELECT symbol, price_change_percentage_24h\r\n",
+        "  FROM crypto_lakehouse.gold.dim_asset_current\r\n",
+        "  ORDER BY price_change_percentage_24h ASC\r\n",
+        "  LIMIT 1\r\n",
+        "),\r\n",
+        "news AS (\r\n",
+        "  SELECT ROUND(100.0 * SUM(n_ok) / SUM(total_articulos), 1) AS pct_ok\r\n",
+        "  FROM crypto_lakehouse.gold.news_pipeline_health\r\n",
+        ")\r\n",
+        "SELECT\r\n",
+        "  ROUND(agg.market_cap_total / 1e9, 1) AS market_cap_total_b,\r\n",
+        "  UPPER(gainer.symbol) || ' +' || ROUND(gainer.price_change_percentage_24h, 1) || '%' AS top_gainer,\r\n",
+        "  UPPER(loser.symbol)  || ' '  || ROUND(loser.price_change_percentage_24h, 1)  || '%' AS top_loser,\r\n",
+        "  news.pct_ok AS pct_scraped_ok\r\n",
+        "FROM agg\r\n",
+        "CROSS JOIN gainer\r\n",
+        "CROSS JOIN loser\r\n",
+        "CROSS JOIN news;"
+      ]
+    },
+    {
+      "name": "51adc43f",
+      "displayName": "Movers",
+      "queryLines": [
+        "SELECT\r\n",
+        "  symbol,\r\n",
+        "  ROUND(price_change_pct * 100, 2) AS price_change_pct\r\n",
+        "FROM crypto_lakehouse.gold.asset_daily_summary\r\n",
+        "ORDER BY price_change_pct DESC;"
+      ]
+    },
+    {
+      "name": "4b7f6550",
+      "displayName": "news_health",
+      "queryLines": [
+        "SELECT\r\n",
+        "  source,\r\n",
+        "  n_ok,\r\n",
+        "  n_bloqueado,\r\n",
+        "  n_error,\r\n",
+        "  n_sin_contenido\r\n",
+        "FROM crypto_lakehouse.gold.news_pipeline_health;"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "20d0d83b",
+      "displayName": "Untitled page",
+      "layout": [
+        {
+          "widget": {
+            "name": "leaderboard",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ae6699b9",
+                  "fields": [
+                    {
+                      "name": "rank_at_snapshot",
+                      "expression": "`rank_at_snapshot`"
+                    },
+                    {
+                      "name": "symbol",
+                      "expression": "`symbol`"
+                    },
+                    {
+                      "name": "name",
+                      "expression": "`name`"
+                    },
+                    {
+                      "name": "current_price",
+                      "expression": "`current_price`"
+                    },
+                    {
+                      "name": "market_cap",
+                      "expression": "`market_cap`"
+                    },
+                    {
+                      "name": "ath_change_percentage",
+                      "expression": "`ath_change_percentage`"
+                    },
+                    {
+                      "name": "price_change_percentage_24h",
+                      "expression": "`price_change_percentage_24h`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"font-size: 24px;\">Leaderboard</span>",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "rank_at_snapshot",
+                    "contentAlignment": "left",
+                    "displayName": "Rank"
+                  },
+                  {
+                    "fieldName": "symbol",
+                    "contentAlignment": "left",
+                    "displayName": "Symbol"
+                  },
+                  {
+                    "fieldName": "name"
+                  },
+                  {
+                    "fieldName": "current_price"
+                  },
+                  {
+                    "fieldName": "market_cap"
+                  },
+                  {
+                    "fieldName": "ath_change_percentage"
+                  },
+                  {
+                    "fieldName": "price_change_percentage_24h"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 12,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "market-cap-total-b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2946d2f9",
+                  "fields": [
+                    {
+                      "name": "sum(market_cap_total_b)",
+                      "expression": "SUM(`market_cap_total_b`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": {
+                  "value": "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Market Cap Total (B)</span></span>",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(market_cap_total_b)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "mayor-suba-24h",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2946d2f9",
+                  "fields": [
+                    {
+                      "name": "top_gainer",
+                      "expression": "`top_gainer`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Mayor Suba 24h</span></span>",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "top_gainer"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "mayor-baja-24h",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2946d2f9",
+                  "fields": [
+                    {
+                      "name": "top_loser",
+                      "expression": "`top_loser`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Mayor Baja 24h</span></span>",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "top_loser"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "web-scrapping-success",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2946d2f9",
+                  "fields": [
+                    {
+                      "name": "pct_scraped_ok",
+                      "expression": "`pct_scraped_ok`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"text-align:center;display:block\"><span style=\"font-size: 24px;\">% de Noticias Scrapedas</span></span>",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "pct_scraped_ok",
+                  "formatTemplate": "{{ @formatted }}%"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "movers-del-dia",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "51adc43f",
+                  "fields": [
+                    {
+                      "name": "symbol",
+                      "expression": "`symbol`"
+                    },
+                    {
+                      "name": "sum(price_change_pct)",
+                      "expression": "SUM(`price_change_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"font-size: 24px;\">Movers del Dia</span>",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "symbol",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(price_change_pct)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "salud-pipeline-noticias",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4b7f6550",
+                  "fields": [
+                    {
+                      "name": "source",
+                      "expression": "`source`"
+                    },
+                    {
+                      "name": "sum(n_bloqueado)",
+                      "expression": "SUM(`n_bloqueado`)"
+                    },
+                    {
+                      "name": "sum(n_error)",
+                      "expression": "SUM(`n_error`)"
+                    },
+                    {
+                      "name": "sum(n_ok)",
+                      "expression": "SUM(`n_ok`)"
+                    },
+                    {
+                      "name": "sum(n_sin_contenido)",
+                      "expression": "SUM(`n_sin_contenido`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"font-size: 24px;\">Salud del pipeline de noticias</span>",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "source",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(n_bloqueado)"
+                    },
+                    {
+                      "fieldName": "sum(n_error)"
+                    },
+                    {
+                      "fieldName": "sum(n_ok)"
+                    },
+                    {
+                      "fieldName": "sum(n_sin_contenido)"
+                    }
+                  ]
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 10,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
