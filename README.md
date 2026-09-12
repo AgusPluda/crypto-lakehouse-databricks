@@ -68,7 +68,7 @@ mostrar permisos distintos por capa:
 
 - [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
-- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código listo, bloqueada por un bug de Free Edition, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
+- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código escrito, en troubleshooting, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [ ] **Fase 4 — Visualización.** AI/BI Dashboard nativo + Genie Space, más una Databricks App (Streamlit).
 - [ ] **Fase 5 — ML + MLflow.** Modelo tabular sobre el dominio, reentrenado por Job, registrado en UC con alias `champion`.
@@ -100,10 +100,11 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1 y 3 completas; Fase 2 completa salvo un bug de plataforma.** `silver.crypto_prices`,
-`silver.dim_asset` (versión manual con `MERGE`) y `silver.crypto_news` (dedup + scraping con
-`trafilatura`) listos. La versión declarativa de `dim_asset` (`AUTO CDC FROM SNAPSHOT`) tiene el código
-escrito pero no corre — un bug reconocido de Unity Catalog en Databricks Free Edition
-("Arclight", ver el README de esa carpeta) bloquea la inicialización de cualquier Lakeflow Pipeline en
-este workspace por ahora. Los 3 marts de Gold (`asset_daily_summary`, `dim_asset_current`,
+**Fases 0, 1 y 3 completas; Fase 2 completa salvo la versión declarativa de `dim_asset`, en
+troubleshooting.** `silver.crypto_prices`, `silver.dim_asset` (versión manual con `MERGE`) y
+`silver.crypto_news` (dedup + scraping con `trafilatura`) listos. La versión declarativa
+(`AUTO CDC FROM SNAPSHOT`) tiene el código escrito; se diagnosticó y resolvió un error de catalog
+(un artefacto interno del pipeline había quedado en el catalog equivocado), pero el pipeline todavía no
+corre a éxito — se queda sin progresar una vez que arranca, causa sin diagnosticar todavía (ver el
+README de esa carpeta). Los 3 marts de Gold (`asset_daily_summary`, `dim_asset_current`,
 `news_pipeline_health`) están armados. Próximo: Fase 4 (dashboard + apps).

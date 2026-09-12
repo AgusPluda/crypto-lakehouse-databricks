@@ -3,19 +3,36 @@ from pyspark import pipelines as dp
 from pyspark.sql import functions as F
 
 BRONZE_TABLE = "crypto_lakehouse.bronze.prices_raw"
-TARGET_TABLE = "crypto_lakehouse.silver.dim_asset_declarative"
+TARGET_TABLE = "dim_asset_scd2"
 
 def next_snapshot_and_version(latest_snapshot_version):
-    all_versions = [
-        r["snapshot_ts"]
-        for r in spark.table(BRONZE_TABLE).select("snapshot_ts").distinct().orderBy("snapshot_ts").collect()
-    ]
-
-    candidatos = all_versions if latest_snapshot_version is None else [v for v in all_versions if v > latest_snapshot_version]
-    if not candidatos:
+    # Find the next snapshot version without using collect()
+    if latest_snapshot_version is None:
+        next_version_df = (
+            spark.table(BRONZE_TABLE)
+            .select("snapshot_ts")
+            .distinct()
+            .orderBy("snapshot_ts")
+            .limit(1)
+        )
+    else:
+        next_version_df = (
+            spark.table(BRONZE_TABLE)
+            .select("snapshot_ts")
+            .distinct()
+            .filter(F.col("snapshot_ts") > latest_snapshot_version)
+            .orderBy("snapshot_ts")
+            .limit(1)
+        )
+    
+    # Collect only the single next version
+    next_version_rows = next_version_df.collect()
+    if not next_version_rows:
         return None
-
-    next_version = min(candidatos)
+    
+    next_version = next_version_rows[0]["snapshot_ts"]
+    
+    # Get the snapshot data for this version
     snapshot_df = (
         spark.table(BRONZE_TABLE)
         .filter(F.col("snapshot_ts") == next_version)
