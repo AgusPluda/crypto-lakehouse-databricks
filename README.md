@@ -15,7 +15,7 @@ Lakehouse de punta a punta sobre **Databricks Free Edition**: ingesta recurrente
 (Bronze → Silver → Gold) construida con **PySpark** y **Delta Lake**, y sobre los marts Gold tres
 consumidores gobernados dentro del **mismo Unity Catalog**: un **dashboard AI/BI**, un **modelo de
 ML** reentrenado periódicamente con **MLflow**, y un **agente de IA** con RAG (Vector Search sobre un
-corpus de noticias) servido a una **app Streamlit**.
+corpus de noticias) servido a una **app Gradio**.
 
 Es el proyecto demostrativo con el que cierro el learning path oficial de Databricks Academy. El
 objetivo explícito es ejercitar la mayor superficie posible de la plataforma —no un pipeline chico—
@@ -45,7 +45,7 @@ GOLD     marts agregados para el dashboard y las features del ML     (Fase 3 —
       └──▶  RAG  · schema genai · Vector Search sobre noticias → chain LangChain → Agente (tools SQL + retrieval)
                         │
                         ▼
-              Databricks App (Streamlit)   +   espejo en Streamlit Community Cloud
+              Databricks App (Gradio)   +   espejo en Hugging Face Spaces
 ```
 
 Todo el lineage —de la tabla Bronze al agente servido— vive dentro de un único catalog de Unity
@@ -70,7 +70,7 @@ mostrar permisos distintos por capa:
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
 - [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código escrito, en troubleshooting, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
-- [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Streamlit) se arma cuando exista el agente de la Fase 7.
+- [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
 - [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
 - [ ] **Fase 6 — RAG.** Índice de Vector Search sobre las noticias, chain con LangChain, registrada en UC.
 - [ ] **Fase 7 — Agente de IA.** Tools SQL sobre Gold + retrieval RAG; AI Playground → Agent Framework → Model Serving. La app de la Fase 4 es su chat UI.
@@ -89,7 +89,7 @@ notebooks/
   07_agent/          Fase 7 — agente
   08_orchestration/  Fase 8 — jobs
 pipelines/           Lakeflow Declarative Pipeline (dim_asset SCD2 declarativo)
-app/                 Databricks App (Streamlit) + espejo en Streamlit Community Cloud
+app/                 Databricks App (Gradio) + espejo en Hugging Face Spaces
 dashboards/          Exports de los AI/BI Dashboards y notas de los Genie Spaces
 docs/
   images/            Capturas para el README
