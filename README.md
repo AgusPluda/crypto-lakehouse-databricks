@@ -72,7 +72,7 @@ mostrar permisos distintos por capa:
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
 - [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
-- [ ] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`) ✅. Índice de Vector Search creado, sync fallando por cupo diario de compute de Free Edition (no es config, ver [`notebooks/06_rag/README.md`](notebooks/06_rag/README.md)). Chain con LangChain, pendiente.
+- [ ] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`) ✅. Índice de Vector Search (`genai.news_chunks_index`) creado y sincronizado ✅ (ver [`notebooks/06_rag/README.md`](notebooks/06_rag/README.md)). Chain con LangChain, pendiente.
 - [ ] **Fase 7 — Agente de IA.** Tools SQL sobre Gold + retrieval RAG; AI Playground → Agent Framework → Model Serving. La app de la Fase 4 es su chat UI.
 - [ ] **Fase 8 — Orquestación + documentación.** Jobs con dependencias entre fases (escalonados por el límite de 5 tareas concurrentes) + lineage completo en Catalog Explorer como pieza central del README.
 
@@ -108,8 +108,7 @@ el pipeline todavía no corre a éxito (ver su README). Los 3 marts de Gold, el 
 Genie Space están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`,
 con `FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
 datos verificada, pero necesita ≥2 días de historia en `gold.asset_daily_summary` que se van a acumular
-solos con la Fase 8. El chunking de Fase 6 (`genai.news_chunks`, 368 chunks) funciona; el índice de
-Vector Search está creado pero su sync falla por el cupo diario de compute serverless de Free Edition
-(se resuelve solo al otro día). Falta la Databricks App (Gradio), que espera al agente de la Fase 7.
-Próximo: retomar cualquiera de los tres pendientes cuando se destraben solos, o seguir diseñando lo que
-sigue.
+solos con la Fase 8. El chunking de Fase 6 (`genai.news_chunks`, 368 chunks) y el índice de Vector
+Search (`genai.news_chunks_index`, 368 filas indexadas) funcionan; sigue pendiente la chain de RAG con
+LangChain. Falta la Databricks App (Gradio), que espera al agente de la Fase 7.
+Próximo: armar la chain de RAG de la Fase 6, o retomar los otros dos pendientes cuando se destraben solos.
