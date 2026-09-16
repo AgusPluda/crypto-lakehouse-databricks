@@ -74,12 +74,30 @@
         "  n_sin_contenido\r\n",
         "FROM crypto_lakehouse.gold.news_pipeline_health;"
       ]
+    },
+    {
+      "name": "movers_with_direction",
+      "displayName": "Movers del Día con Dirección",
+      "queryLines": [
+        "SELECT\n",
+        "  symbol,\n",
+        "  price_change_pct as price_change,\n",
+        "  CASE\n",
+        "    WHEN price_change_pct > 0 THEN 'Suba'\n",
+        "    WHEN price_change_pct < 0 THEN 'Baja'\n",
+        "    ELSE 'Sin cambio'\n",
+        "  END as direction\n",
+        "FROM\n",
+        "  crypto_lakehouse.gold.asset_daily_summary\n",
+        "ORDER BY\n",
+        "  price_change DESC"
+      ]
     }
   ],
   "pages": [
     {
       "name": "20d0d83b",
-      "displayName": "Untitled page",
+      "displayName": "Resumen",
       "layout": [
         {
           "widget": {
@@ -111,12 +129,12 @@
                       "expression": "`market_cap`"
                     },
                     {
-                      "name": "ath_change_percentage",
-                      "expression": "`ath_change_percentage`"
-                    },
-                    {
                       "name": "price_change_percentage_24h",
                       "expression": "`price_change_percentage_24h`"
+                    },
+                    {
+                      "name": "ath_change_percentage",
+                      "expression": "`ath_change_percentage`"
                     }
                   ],
                   "disaggregated": true
@@ -126,8 +144,13 @@
             "spec": {
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Leaderboard</span>",
+                  "value": "<span style=\"font-size:24px;font-weight:600\">Top Criptomonedas</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Ranking de las principales criptomonedas por capitalización de mercado",
                   "fields": []
                 }
               },
@@ -137,28 +160,118 @@
                 "columns": [
                   {
                     "fieldName": "rank_at_snapshot",
-                    "contentAlignment": "left",
-                    "displayName": "Rank"
+                    "contentAlignment": "center",
+                    "headerAlignment": "center",
+                    "useForSearch": false,
+                    "displayName": "#"
                   },
                   {
                     "fieldName": "symbol",
                     "contentAlignment": "left",
-                    "displayName": "Symbol"
+                    "headerAlignment": "left",
+                    "useForSearch": true,
+                    "displayName": "Símbolo"
                   },
                   {
-                    "fieldName": "name"
+                    "fieldName": "name",
+                    "contentAlignment": "left",
+                    "headerAlignment": "left",
+                    "useForSearch": true,
+                    "displayName": "Nombre"
                   },
                   {
-                    "fieldName": "current_price"
+                    "fieldName": "current_price",
+                    "headerAlignment": "right",
+                    "contentAlignment": "right",
+                    "useForSearch": false,
+                    "displayName": "Precio (USD)",
+                    "formatTemplate": "${{ @formatted }}"
                   },
                   {
-                    "fieldName": "market_cap"
+                    "fieldName": "market_cap",
+                    "headerAlignment": "right",
+                    "contentAlignment": "right",
+                    "useForSearch": false,
+                    "displayName": "Cap. Mercado",
+                    "formatTemplate": "${{ @formatted }}"
                   },
                   {
-                    "fieldName": "ath_change_percentage"
+                    "fieldName": "price_change_percentage_24h",
+                    "headerAlignment": "right",
+                    "contentAlignment": "right",
+                    "useForSearch": false,
+                    "displayName": "Cambio 24h",
+                    "formatTemplate": "{{ @formatted }}%",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "0"
+                            },
+                            "operator": ">"
+                          },
+                          "foregroundColor": "#16a34a",
+                          "fontWeight": 600
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "0"
+                            },
+                            "operator": "<"
+                          },
+                          "foregroundColor": "#dc2626",
+                          "fontWeight": 600
+                        }
+                      ]
+                    }
                   },
                   {
-                    "fieldName": "price_change_percentage_24h"
+                    "fieldName": "ath_change_percentage",
+                    "headerAlignment": "right",
+                    "contentAlignment": "right",
+                    "useForSearch": false,
+                    "displayName": "Desde ATH",
+                    "formatTemplate": "{{ @formatted }}%",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "-30"
+                            },
+                            "operator": ">"
+                          },
+                          "foregroundColor": "#16a34a"
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "-30"
+                            },
+                            "operator": "<="
+                          },
+                          "foregroundColor": "#ea580c"
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "-50"
+                            },
+                            "operator": "<="
+                          },
+                          "foregroundColor": "#dc2626"
+                        }
+                      ]
+                    }
                   }
                 ]
               },
@@ -169,8 +282,8 @@
           },
           "position": {
             "x": 0,
-            "y": 3,
-            "width": 12,
+            "y": 4,
+            "width": 8,
             "height": 7
           }
         },
@@ -195,9 +308,13 @@
             "spec": {
               "frame": {
                 "showTitle": true,
-                "showDescription": false,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Market Cap Total (B)</span></span>",
+                  "value": "<span style=\"font-size: 24px;\">Capitalización Total</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Valor agregado de todas las criptomonedas",
                   "fields": []
                 }
               },
@@ -205,7 +322,16 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(market_cap_total_b)"
+                  "fieldName": "sum(market_cap_total_b)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 2
+                    }
+                  }
                 }
               },
               "data": {
@@ -217,7 +343,7 @@
             "x": 0,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -241,8 +367,13 @@
             "spec": {
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Mayor Suba 24h</span></span>",
+                  "value": "<span style=\"font-size: 24px;\">Mejor Desempeño</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Mayor ganancia en 24 horas",
                   "fields": []
                 }
               },
@@ -250,7 +381,8 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "top_gainer"
+                  "fieldName": "top_gainer",
+                  "formatTemplate": "{{ @ }}"
                 }
               },
               "data": {
@@ -262,7 +394,7 @@
             "x": 3,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -286,8 +418,13 @@
             "spec": {
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Mayor Baja 24h</span></span>",
+                  "value": "<span style=\"font-size: 24px;\">Peor Desempeño</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Mayor pérdida en 24 horas",
                   "fields": []
                 }
               },
@@ -295,7 +432,8 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "top_loser"
+                  "fieldName": "top_loser",
+                  "formatTemplate": "{{ @ }}"
                 }
               },
               "data": {
@@ -307,7 +445,7 @@
             "x": 6,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -331,8 +469,13 @@
             "spec": {
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"text-align:center;display:block\"><span style=\"font-size: 24px;\">% de Noticias Scrapedas</span></span>",
+                  "value": "<span style=\"font-size: 24px;\">Tasa de Éxito</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Artículos procesados correctamente",
                   "fields": []
                 }
               },
@@ -341,7 +484,15 @@
               "encodings": {
                 "value": {
                   "fieldName": "pct_scraped_ok",
-                  "formatTemplate": "{{ @formatted }}%"
+                  "formatTemplate": "{{ @formatted }}%",
+                  "format": {
+                    "type": "number-plain",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    },
+                    "abbreviation": "none"
+                  }
                 }
               },
               "data": {
@@ -353,7 +504,7 @@
             "x": 9,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -363,42 +514,98 @@
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "51adc43f",
+                  "datasetName": "movers_with_direction",
                   "fields": [
+                    {
+                      "name": "direction",
+                      "expression": "`direction`"
+                    },
                     {
                       "name": "symbol",
                       "expression": "`symbol`"
                     },
                     {
-                      "name": "sum(price_change_pct)",
-                      "expression": "SUM(`price_change_pct`)"
+                      "name": "price_change",
+                      "expression": "`price_change`"
                     }
                   ],
-                  "disaggregated": false
+                  "disaggregated": true
                 }
               }
             ],
             "spec": {
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Movers del Dia</span>",
+                  "value": "<span style=\"font-size:24px;font-weight:600\">Mayores Movimientos del Día</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Cambio porcentual de precio en las últimas 24 horas",
                   "fields": []
                 }
               },
+              "annotations": [
+                {
+                  "type": "horizontal-line",
+                  "encodings": {
+                    "type": "constant",
+                    "y": {
+                      "dataType": "DOUBLE",
+                      "dataValue": "0"
+                    },
+                    "label": {
+                      "value": "Sin cambio",
+                      "style": {
+                        "fontColor": "#64748b"
+                      }
+                    }
+                  }
+                }
+              ],
               "version": 3,
+              "mark": {
+                "colors": [
+                  "#dc2626",
+                  "#94a3b8",
+                  "#16a34a"
+                ]
+              },
               "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "symbol",
+                  "axis": {
+                    "title": "Criptomoneda"
+                  },
                   "scale": {
-                    "type": "categorical"
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
                   }
                 },
                 "y": {
-                  "fieldName": "sum(price_change_pct)",
+                  "fieldName": "price_change",
+                  "axis": {
+                    "title": "Cambio de Precio (%)"
+                  },
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
                   "scale": {
                     "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "direction",
+                  "scale": {
+                    "type": "categorical"
                   }
                 },
                 "label": {
@@ -412,8 +619,8 @@
           },
           "position": {
             "x": 0,
-            "y": 10,
-            "width": 6,
+            "y": 11,
+            "width": 12,
             "height": 8
           }
         },
@@ -454,8 +661,13 @@
             "spec": {
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Salud del pipeline de noticias</span>",
+                  "value": "<span style=\"font-size: 24px;\">Salud del Pipeline de Noticias</span>",
+                  "fields": []
+                },
+                "description": {
+                  "value": "Estado del procesamiento de artículos por fuente de noticias",
                   "fields": []
                 }
               },
@@ -464,6 +676,9 @@
               "encodings": {
                 "x": {
                   "fieldName": "source",
+                  "axis": {
+                    "title": "Fuente de Noticias"
+                  },
                   "scale": {
                     "type": "categorical"
                   }
@@ -474,18 +689,25 @@
                   },
                   "fields": [
                     {
-                      "fieldName": "sum(n_bloqueado)"
+                      "fieldName": "sum(n_bloqueado)",
+                      "displayName": "Bloqueados"
                     },
                     {
-                      "fieldName": "sum(n_error)"
+                      "fieldName": "sum(n_error)",
+                      "displayName": "Errores"
                     },
                     {
-                      "fieldName": "sum(n_ok)"
+                      "fieldName": "sum(n_ok)",
+                      "displayName": "Exitosos"
                     },
                     {
-                      "fieldName": "sum(n_sin_contenido)"
+                      "fieldName": "sum(n_sin_contenido)",
+                      "displayName": "Sin Contenido"
                     }
-                  ]
+                  ],
+                  "axis": {
+                    "title": "Cantidad de Artículos"
+                  }
                 }
               },
               "data": {
@@ -494,10 +716,10 @@
             }
           },
           "position": {
-            "x": 6,
-            "y": 10,
-            "width": 6,
-            "height": 8
+            "x": 8,
+            "y": 4,
+            "width": 4,
+            "height": 7
           }
         }
       ],

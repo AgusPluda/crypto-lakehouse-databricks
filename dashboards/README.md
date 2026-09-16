@@ -9,9 +9,13 @@ Create → Import dashboard from file.
 | panel | tipo | fuente |
 |---|---|---|
 | KPIs (market cap total, mayor suba/baja 24h, % de noticias scrapeadas) | 4 Counters | `gold.dim_asset_current` + `gold.news_pipeline_health` (CTEs + `CROSS JOIN` para combinar 4 agregados de 1 fila en una sola) |
-| Leaderboard | Tabla | `gold.dim_asset_current`, ordenado por rank |
-| Movers del día | Barras | `gold.asset_daily_summary` |
+| Top Criptomonedas (leaderboard) | Tabla | `gold.dim_asset_current`, ordenado por rank; formato condicional (verde/rojo) en cambio 24h y distancia al ATH |
+| Mayores Movimientos del Día | Barras, coloreadas por dirección (Suba/Baja/Sin cambio) | `gold.asset_daily_summary` |
 | Salud del pipeline de noticias | Barras apiladas por `source` | `gold.news_pipeline_health` |
+
+Retoque de diseño 2026-09-16: título de página ("Resumen"), títulos/descripciones de cada panel,
+formato condicional de colores en el leaderboard, y el panel de movers pasó a colorear por dirección
+del movimiento en vez de un solo color.
 
 ## Genie Space
 
