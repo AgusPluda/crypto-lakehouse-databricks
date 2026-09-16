@@ -35,7 +35,7 @@ BRONZE   bronze.prices_raw · bronze.news_raw      append · payload crudo + met
       │  PySpark + Delta
       ▼
 SILVER   silver.crypto_prices    hechos tipados por snapshot (precio, market_cap, rank_at_snapshot)
-         silver.dim_asset        SCD Type 2 de membership top-25  —  MERGE manual + AUTO CDC declarativo
+         silver.dim_asset        SCD Type 2 de membership top-25  —  MERGE INTO manual
          silver.crypto_news      dedup por URL · scraping del artículo completo · limpieza HTML
       │
       ▼
@@ -69,7 +69,7 @@ mostrar permisos distintos por capa:
 
 - [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
-- [ ] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (versión manual `MERGE` ✅ + versión declarativa `AUTO CDC FROM SNAPSHOT` — código escrito, en troubleshooting, ver [`notebooks/pipelines/dim_asset_scd2_declarative/README.md`](notebooks/pipelines/dim_asset_scd2_declarative/README.md)), scraping de artículos completos para el corpus del RAG.
+- [x] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (`MERGE INTO` manual), scraping de artículos completos para el corpus del RAG. Se evaluó también una versión declarativa con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines) pero se descartó: quedaba bloqueada una y otra vez por el cupo diario de compute serverless de Free Edition antes de poder terminar el troubleshooting, y era una segunda implementación redundante de lo mismo que ya resuelve el `MERGE` manual.
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
 - [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
@@ -89,7 +89,6 @@ notebooks/
   06_rag/            Fase 6 — vector search + chain
   07_agent/          Fase 7 — agente
   08_orchestration/  Fase 8 — jobs
-pipelines/           Lakeflow Declarative Pipeline (dim_asset SCD2 declarativo)
 app/                 Databricks App (Gradio) + espejo en Next.js/Vercel
 dashboards/          Exports de los AI/BI Dashboards y notas de los Genie Spaces
 docs/
@@ -101,14 +100,16 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1, 3, 4 y 6 completas; Fase 7 en curso (agente armado, deploy bloqueado); Fases 2 y 5 en
-curso, cada una con un paso bloqueado por un factor externo (no por diseño).**
-`silver.crypto_prices`, `silver.dim_asset` (versión manual con `MERGE`) y `silver.crypto_news`
-(dedup + scraping con `trafilatura`) listos. La versión declarativa de `dim_asset`
-(`AUTO CDC FROM SNAPSHOT`) tiene el código escrito y el error de catalog resuelto, pero el pipeline
-todavía no corre a éxito (ver su README). Los 3 marts de Gold, el AI/BI Dashboard y el Genie Space
-están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`, con
-`FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
+**Fases 0, 1, 2, 3, 4 y 6 completas; Fase 7 en curso (agente armado, deploy bloqueado); Fase 5 en
+curso, con un paso bloqueado por un factor externo (no por diseño).**
+`silver.crypto_prices`, `silver.dim_asset` (SCD Type 2 con `MERGE INTO` manual) y `silver.crypto_news`
+(dedup + scraping con `trafilatura`) listos. Se evaluó también una versión declarativa de `dim_asset`
+con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines), pero se descartó: quedaba bloqueada
+repetidamente por el cupo diario de compute serverless de Free Edition antes de poder cerrar el
+troubleshooting, y era una segunda implementación redundante de algo que la versión manual ya
+resuelve — no aporta nada nuevo al objetivo del proyecto. Los 3 marts de Gold, el AI/BI Dashboard y
+el Genie Space están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`,
+con `FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
 datos verificada, pero necesita ≥2 días de historia en `gold.asset_daily_summary` que se van a
 acumular solos con la Fase 8. La Fase 6 (RAG) está completa: chunking (`genai.news_chunks`, 368
 chunks), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y una chain de LangChain
@@ -118,5 +119,5 @@ LangGraph y registradas en UC con alias `champion`; el Model Serving endpoint es
 falla de infraestructura de Free Edition (`Build could not start due to an internal error` — no es
 config, ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md)), pendiente de reintentar.
 Falta la Databricks App (Gradio) + espejo en Next.js/Vercel, que esperan al endpoint del agente.
-Próximo: reintentar el deploy del endpoint del agente, o retomar los pendientes de Fases 2 y 5 cuando
-se destraben solos.
+Próximo: reintentar el deploy del endpoint del agente, o retomar el pendiente de Fase 5 cuando se
+destrabe solo.
