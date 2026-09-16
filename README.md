@@ -14,8 +14,9 @@ Lakehouse de punta a punta sobre **Databricks Free Edition**: ingesta recurrente
 (precios de criptomonedas de **CoinGecko** + noticias vía **RSS**), arquitectura **medallion**
 (Bronze → Silver → Gold) construida con **PySpark** y **Delta Lake**, y sobre los marts Gold tres
 consumidores gobernados dentro del **mismo Unity Catalog**: un **dashboard AI/BI**, un **modelo de
-ML** reentrenado periódicamente con **MLflow**, y un **agente de IA** con RAG (Vector Search sobre un
-corpus de noticias) servido a una **app Gradio**.
+ML** reentrenado periódicamente con **MLflow**, y un **agente de IA** (tools SQL + RAG sobre Vector
+Search) servido en una **Databricks App (Gradio)** y espejado en **Next.js/Vercel** para la demo
+pública.
 
 Es el proyecto demostrativo con el que cierro el learning path oficial de Databricks Academy. El
 objetivo explícito es ejercitar la mayor superficie posible de la plataforma —no un pipeline chico—
@@ -45,7 +46,7 @@ GOLD     marts agregados para el dashboard y las features del ML     (Fase 3 —
       └──▶  RAG  · schema genai · Vector Search sobre noticias → chain LangChain → Agente (tools SQL + retrieval)
                         │
                         ▼
-              Databricks App (Gradio)   +   espejo en Hugging Face Spaces
+              Databricks App (Gradio, chat interno)   +   espejo en Next.js/Vercel (demo pública)
 ```
 
 Todo el lineage —de la tabla Bronze al agente servido— vive dentro de un único catalog de Unity
@@ -73,7 +74,7 @@ mostrar permisos distintos por capa:
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
 - [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
 - [x] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y chain de RAG con LangChain (`DatabricksVectorSearch` + `ChatDatabricks`) registrada en UC con alias `champion` (ver [`notebooks/06_rag/README.md`](notebooks/06_rag/README.md)).
-- [ ] **Fase 7 — Agente de IA.** Tools SQL sobre Gold + retrieval RAG; AI Playground → Agent Framework → Model Serving. La app de la Fase 4 es su chat UI.
+- [ ] **Fase 7 — Agente de IA.** 4 UC Functions (tools SQL sobre Gold) + retrieval RAG (Vector Search) armadas con LangGraph, registradas en UC con alias `champion`. Deploy del Model Serving endpoint bloqueado por una falla de infraestructura de Free Edition (no de config, ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md)).
 - [ ] **Fase 8 — Orquestación + documentación.** Jobs con dependencias entre fases (escalonados por el límite de 5 tareas concurrentes) + lineage completo en Catalog Explorer como pieza central del README.
 
 ## Cómo está organizado el repo
@@ -89,7 +90,7 @@ notebooks/
   07_agent/          Fase 7 — agente
   08_orchestration/  Fase 8 — jobs
 pipelines/           Lakeflow Declarative Pipeline (dim_asset SCD2 declarativo)
-app/                 Databricks App (Gradio) + espejo en Hugging Face Spaces
+app/                 Databricks App (Gradio) + espejo en Next.js/Vercel
 dashboards/          Exports de los AI/BI Dashboards y notas de los Genie Spaces
 docs/
   images/            Capturas para el README
@@ -100,17 +101,22 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1, 3, 4 y 6 completas; Fases 2 y 5 en curso, cada una con un paso bloqueado por un factor
-externo (no por diseño).** `silver.crypto_prices`, `silver.dim_asset` (versión manual con `MERGE`) y
-`silver.crypto_news` (dedup + scraping con `trafilatura`) listos. La versión declarativa de
-`dim_asset` (`AUTO CDC FROM SNAPSHOT`) tiene el código escrito y el error de catalog resuelto, pero
-el pipeline todavía no corre a éxito (ver su README). Los 3 marts de Gold, el AI/BI Dashboard y el
-Genie Space están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`,
-con `FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
-datos verificada, pero necesita ≥2 días de historia en `gold.asset_daily_summary` que se van a acumular
-solos con la Fase 8. La Fase 6 (RAG) está completa: chunking (`genai.news_chunks`, 368 chunks), índice
-de Vector Search (`genai.news_chunks_index`) sincronizado, y una chain de LangChain (empaquetada como
-Models from Code) registrada en UC con alias `champion`, verificada citando fuentes reales del corpus.
-Falta la Databricks App (Gradio), que espera al agente de la Fase 7.
-Próximo: Fase 7 (Agente de IA) sobre la chain de RAG ya lista, o retomar los pendientes de Fases 2 y 5
-cuando se destraben solos.
+**Fases 0, 1, 3, 4 y 6 completas; Fase 7 en curso (agente armado, deploy bloqueado); Fases 2 y 5 en
+curso, cada una con un paso bloqueado por un factor externo (no por diseño).**
+`silver.crypto_prices`, `silver.dim_asset` (versión manual con `MERGE`) y `silver.crypto_news`
+(dedup + scraping con `trafilatura`) listos. La versión declarativa de `dim_asset`
+(`AUTO CDC FROM SNAPSHOT`) tiene el código escrito y el error de catalog resuelto, pero el pipeline
+todavía no corre a éxito (ver su README). Los 3 marts de Gold, el AI/BI Dashboard y el Genie Space
+están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`, con
+`FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
+datos verificada, pero necesita ≥2 días de historia en `gold.asset_daily_summary` que se van a
+acumular solos con la Fase 8. La Fase 6 (RAG) está completa: chunking (`genai.news_chunks`, 368
+chunks), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y una chain de LangChain
+(empaquetada como Models from Code) registrada en UC con alias `champion`, verificada citando
+fuentes reales del corpus. La Fase 7 (Agente) tiene 4 UC Functions + retrieval RAG armadas con
+LangGraph y registradas en UC con alias `champion`; el Model Serving endpoint está bloqueado por una
+falla de infraestructura de Free Edition (`Build could not start due to an internal error` — no es
+config, ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md)), pendiente de reintentar.
+Falta la Databricks App (Gradio) + espejo en Next.js/Vercel, que esperan al endpoint del agente.
+Próximo: reintentar el deploy del endpoint del agente, o retomar los pendientes de Fases 2 y 5 cuando
+se destraben solos.
