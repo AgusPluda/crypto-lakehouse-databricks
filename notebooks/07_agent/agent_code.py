@@ -4,6 +4,7 @@ from databricks_langchain import (
     VectorSearchRetrieverTool,
     ChatDatabricks,
 )
+from unitycatalog.ai.core.databricks import DatabricksFunctionClient
 from langgraph.prebuilt import create_react_agent
 import mlflow
 
@@ -12,13 +13,15 @@ llm = ChatDatabricks(
     temperature=0.0,
 )
 
+uc_client = DatabricksFunctionClient()
+
 uc_tool_names = [
     "crypto_lakehouse.genai.get_asset_price",
     "crypto_lakehouse.genai.get_top_gainers",
     "crypto_lakehouse.genai.get_top_losers",
     "crypto_lakehouse.genai.news_pipeline_health",
 ]
-uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
+uc_toolkit = UCFunctionToolkit(client=uc_client, function_names=uc_tool_names)
 
 vs_tool = VectorSearchRetrieverTool(
     index_name="crypto_lakehouse.genai.news_chunks_index",

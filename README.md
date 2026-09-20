@@ -74,7 +74,7 @@ mostrar permisos distintos por capa:
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
 - [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
 - [x] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y chain de RAG con LangChain (`DatabricksVectorSearch` + `ChatDatabricks`) registrada en UC con alias `champion` (ver [`notebooks/06_rag/README.md`](notebooks/06_rag/README.md)).
-- [ ] **Fase 7 — Agente de IA.** 4 UC Functions (tools SQL sobre Gold) + retrieval RAG (Vector Search) armadas con LangGraph, registradas en UC con alias `champion`. Deploy del Model Serving endpoint bloqueado por una falla de infraestructura de Free Edition (no de config, ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md)).
+- [x] **Fase 7 — Agente de IA.** 4 UC Functions (tools SQL sobre Gold) + retrieval RAG (Vector Search) armadas con LangGraph, registradas en UC con alias `champion`, y **desplegadas en un Model Serving endpoint verificado** (`crypto_agent_endpoint`) — ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md) para la saga completa del deploy (5 causas de fallo distintas, desde cupo de compute hasta conflictos reales de dependencias entre `langchain`/`langgraph`/`openai-agents`).
 - [ ] **Fase 8 — Orquestación + documentación.** Jobs con dependencias entre fases (escalonados por el límite de 5 tareas concurrentes) + lineage completo en Catalog Explorer como pieza central del README.
 
 ## Cómo está organizado el repo
@@ -100,8 +100,8 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1, 2, 3, 4 y 6 completas; Fase 7 en curso (agente armado, deploy bloqueado); Fase 5 en
-curso, con un paso bloqueado por un factor externo (no por diseño).**
+**Fases 0, 1, 2, 3, 4, 6 y 7 completas; Fase 5 en curso, con un paso bloqueado por un factor externo
+(no por diseño).**
 `silver.crypto_prices`, `silver.dim_asset` (SCD Type 2 con `MERGE INTO` manual) y `silver.crypto_news`
 (dedup + scraping con `trafilatura`) listos. Se evaluó también una versión declarativa de `dim_asset`
 con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines), pero se descartó: quedaba bloqueada
@@ -114,10 +114,13 @@ datos verificada, pero necesita ≥2 días de historia en `gold.asset_daily_summ
 acumular solos con la Fase 8. La Fase 6 (RAG) está completa: chunking (`genai.news_chunks`, 368
 chunks), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y una chain de LangChain
 (empaquetada como Models from Code) registrada en UC con alias `champion`, verificada citando
-fuentes reales del corpus. La Fase 7 (Agente) tiene 4 UC Functions + retrieval RAG armadas con
-LangGraph y registradas en UC con alias `champion`; el Model Serving endpoint está bloqueado por una
-falla de infraestructura de Free Edition (`Build could not start due to an internal error` — no es
-config, ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md)), pendiente de reintentar.
-Falta la Databricks App (Gradio) + espejo en Next.js/Vercel, que esperan al endpoint del agente.
-Próximo: reintentar el deploy del endpoint del agente, o retomar el pendiente de Fase 5 cuando se
-destrabe solo.
+fuentes reales del corpus. La Fase 7 (Agente) está completa: 4 UC Functions + retrieval RAG armadas
+con LangGraph, registradas en UC con alias `champion`, y **desplegadas y verificadas en un Model
+Serving endpoint real** (`crypto_agent_endpoint`) — respondió correctamente tanto a preguntas de
+precios (tool SQL) como de noticias (RAG con citas de fuentes reales). El deploy llevó 11 versiones
+del modelo y cinco causas de fallo distintas (cupo de compute, conflictos reales de dependencias
+entre `langchain`/`langgraph`/`langgraph-prebuilt`/`openai-agents`, y falta de credenciales
+declaradas para los recursos del agente) — historia completa en
+[`notebooks/07_agent/README.md`](notebooks/07_agent/README.md). Falta la Databricks App (Gradio) +
+espejo en Next.js/Vercel, que ya pueden arrancarse con el endpoint andando. Próximo: armar la
+Databricks App, o retomar el pendiente de Fase 5 cuando se destrabe solo.
