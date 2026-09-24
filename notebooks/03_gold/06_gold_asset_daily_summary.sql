@@ -8,7 +8,7 @@
 -- COMMAND ----------
 
 CREATE OR REPLACE TABLE crypto_lakehouse.gold.asset_daily_summary
-COMMENT 'Resumen diario tipo OHLC por activo, downsampleado de silver.crypto_prices. Full rebuild cada corrida.'
+COMMENT 'Resumen diario tipo OHLC por activo, downsampleado de silver.crypto_prices. Solo días cerrados (excluye el día en curso). Full rebuild cada corrida.'
 AS
 WITH windowed AS (
   SELECT
@@ -29,7 +29,8 @@ WITH windowed AS (
       PARTITION BY asset_id, to_date(snapshot_ts) ORDER BY snapshot_ts
       ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
     ) AS rank_close
-  FROM crypto_lakehouse.silver.crypto_prices
+    FROM crypto_lakehouse.silver.crypto_prices
+    WHERE to_date(snapshot_ts) < current_date()
 ),
 daily AS (
   SELECT

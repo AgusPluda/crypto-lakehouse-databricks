@@ -33,9 +33,8 @@ FEATURE_TABLE = "crypto_lakehouse.mlops.features_price_daily"
 features_df = spark.sql(f"""
     WITH lagged AS (
         SELECT
-            asset_id,
-            trade_date,
-            price_change_pct,
+            asset_id, trade_date, price_change_pct,
+            LAG(trade_date)       OVER (PARTITION BY asset_id ORDER BY trade_date) AS prev_date,
             LAG(price_close)      OVER (PARTITION BY asset_id ORDER BY trade_date) AS feature_price_close,
             LAG(rank_close)       OVER (PARTITION BY asset_id ORDER BY trade_date) AS feature_rank_close,
             LAG(avg_market_cap)   OVER (PARTITION BY asset_id ORDER BY trade_date) AS feature_avg_market_cap,
@@ -43,17 +42,13 @@ features_df = spark.sql(f"""
             LAG(price_change_pct) OVER (PARTITION BY asset_id ORDER BY trade_date) AS feature_price_change_pct
         FROM {GOLD_TABLE}
     )
-    SELECT
-        asset_id,
-        trade_date,
-        feature_price_close,
-        feature_rank_close,
-        feature_avg_market_cap,
-        feature_avg_total_volume,
-        feature_price_change_pct,
-        CASE WHEN price_change_pct > 0 THEN 1 ELSE 0 END AS target_price_up
+    SELECT asset_id, trade_date, feature_price_close, feature_rank_close,
+        feature_avg_market_cap, feature_avg_total_volume, feature_price_change_pct,
+        CASE WHEN price_change_pct > 0 THEN 1 ELSE 0 END AS target_price_up,
+        price_change_pct AS target_price_change_pct
     FROM lagged
     WHERE feature_price_close IS NOT NULL
+    AND DATEDIFF(trade_date, prev_date) = 1
 """)
 
 print(f"filas: {features_df.count()}")
