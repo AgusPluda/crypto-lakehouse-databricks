@@ -4,18 +4,22 @@
 # environment_version = "5"
 # ///
 # MAGIC %md
-# MAGIC # Fase 5: ML — Entrenamiento: dirección del precio (clasificación)
+# MAGIC # Fase 5: ML — Entrenamiento: forecast de retorno diario (regresión)
 # MAGIC
-# MAGIC `mlops.features_price_daily` → `Pipeline(StandardScaler, LogisticRegression)` + MLflow + registro en UC.
+# MAGIC `mlops.features_price_daily` → `Pipeline(StandardScaler, Ridge)` + MLflow + registro en UC.
 # MAGIC
-# MAGIC - **Guarda por cantidad de días distintos** (no de filas): 25 activos × 1 día ya son 25 filas, pero un solo día no permite un split temporal.
-# MAGIC - **Baseline de clase mayoritaria** logueado junto al modelo: una accuracy sin baseline no significa nada.
+# MAGIC **Se predice el retorno, no el precio.** El target es `target_price_change_pct` (retorno open→close del día,
+# MAGIC como fracción). Predecir el nivel de precio directo devuelve casi el precio de ayer y no aprende nada.
+# MAGIC El precio pronosticado se deriva afuera del modelo: `price_close_ultimo * (1 + retorno_predicho)`.
+# MAGIC
+# MAGIC - **Ridge** en vez de regresión lineal simple: con pocos días de historia regulariza y es más estable.
+# MAGIC - **Baseline:** predecir siempre el retorno medio del train. El modelo tiene que ganarle en MAE.
 # MAGIC - El alias `champion` solo se mueve si el modelo **supera al baseline** en test.
 
 # COMMAND ----------
 
 FEATURE_TABLE = "crypto_lakehouse.mlops.features_price_daily"
-MODEL_NAME = "crypto_lakehouse.mlops.price_direction_model"
+MODEL_NAME = "crypto_lakehouse.mlops.price_forecast_model"
 MIN_DATES = 8  # >=6 días de train y >=2 de test con el split 80/20
 
 df = spark.table(FEATURE_TABLE)
@@ -31,13 +35,14 @@ if not ready:
 # COMMAND ----------
 
 if ready:
+    import numpy as np
     import mlflow
     import mlflow.sklearn
     from mlflow import MlflowClient
     from mlflow.models import infer_signature
-    from sklearn.dummy import DummyClassifier
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import accuracy_score, f1_score
+    from sklearn.dummy import DummyRegressor
+    from sklearn.linear_model import Ridge
+    from sklearn.metrics import mean_absolute_error, mean_squared_error
     from sklearn.pipeline import Pipeline
     from sklearn.preprocessing import StandardScaler
 
@@ -47,12 +52,11 @@ if ready:
         "feature_price_close", "feature_rank_close", "feature_avg_market_cap",
         "feature_avg_total_volume", "feature_price_change_pct",
     ]
-    TARGET_COL = "target_price_up"
+    TARGET_COL = "target_price_change_pct"
 
     pdf = df.toPandas().sort_values("trade_date")
-    pdf[FEATURE_COLS] = pdf[FEATURE_COLS].astype(float)
+    pdf[FEATURE_COLS + [TARGET_COL]] = pdf[FEATURE_COLS + [TARGET_COL]].astype(float)
 
-    # split TEMPORAL: los últimos ~20% de los días son test (mínimo 1 día)
     dates = sorted(pdf["trade_date"].unique())
     n_test_dates = max(1, int(len(dates) * 0.2))
     cutoff = dates[-n_test_dates]
@@ -62,29 +66,32 @@ if ready:
     X_train, y_train = train_pdf[FEATURE_COLS], train_pdf[TARGET_COL]
     X_test, y_test = test_pdf[FEATURE_COLS], test_pdf[TARGET_COL]
 
-    baseline = DummyClassifier(strategy="most_frequent").fit(X_train, y_train)
-    baseline_acc = accuracy_score(y_test, baseline.predict(X_test))
+    baseline = DummyRegressor(strategy="mean").fit(X_train, y_train)
+    baseline_mae = mean_absolute_error(y_test, baseline.predict(X_test))
 
-    with mlflow.start_run(run_name="price_direction_logreg") as run:
+    with mlflow.start_run(run_name="price_forecast_ridge") as run:
         model = Pipeline([
             ("scaler", StandardScaler()),
-            ("clf", LogisticRegression(max_iter=1000)),
+            ("reg", Ridge(alpha=1.0)),
         ])
         model.fit(X_train, y_train)
 
         preds = model.predict(X_test)
-        acc = accuracy_score(y_test, preds)
-        f1 = f1_score(y_test, preds, zero_division=0)
-        beats_baseline = acc > baseline_acc
+        mae = mean_absolute_error(y_test, preds)
+        rmse = float(np.sqrt(mean_squared_error(y_test, preds)))
+        directional_acc = float((np.sign(preds) == np.sign(y_test)).mean())
+        beats_baseline = mae < baseline_mae
 
-        mlflow.log_param("model_type", "Pipeline(StandardScaler, LogisticRegression)")
+        mlflow.log_param("model_type", "Pipeline(StandardScaler, Ridge)")
+        mlflow.log_param("alpha", 1.0)
         mlflow.log_param("n_train", len(X_train))
         mlflow.log_param("n_test", len(X_test))
         mlflow.log_param("n_train_dates", train_pdf["trade_date"].nunique())
         mlflow.log_param("n_test_dates", test_pdf["trade_date"].nunique())
-        mlflow.log_metric("accuracy", acc)
-        mlflow.log_metric("f1", f1)
-        mlflow.log_metric("baseline_accuracy", baseline_acc)
+        mlflow.log_metric("mae", mae)
+        mlflow.log_metric("rmse", rmse)
+        mlflow.log_metric("directional_accuracy", directional_acc)
+        mlflow.log_metric("baseline_mae", baseline_mae)
         mlflow.log_metric("beats_baseline", int(beats_baseline))
 
         model_info = mlflow.sklearn.log_model(
@@ -92,7 +99,8 @@ if ready:
             signature=infer_signature(X_train, model.predict(X_train)),
             registered_model_name=MODEL_NAME,
         )
-        print(f"accuracy={acc:.3f} f1={f1:.3f} baseline_accuracy={baseline_acc:.3f} run_id={run.info.run_id}")
+        print(f"mae={mae:.5f} rmse={rmse:.5f} baseline_mae={baseline_mae:.5f} "
+              f"directional_acc={directional_acc:.3f} run_id={run.info.run_id}")
 
     version = model_info.registered_model_version
     if beats_baseline:
