@@ -72,7 +72,7 @@ mostrar permisos distintos por capa:
 - [x] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (`MERGE INTO` manual), scraping de artículos completos para el corpus del RAG. Se evaluó también una versión declarativa con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines) pero se descartó tras un troubleshooting largo y repetitivo — ver [`notebooks/02_silver/README.md`](notebooks/02_silver/README.md).
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
-- [ ] **Fase 5 — ML + MLflow.** Feature table (`mlops.features_price_daily`) ✅. Entrenamiento + registro con alias `champion` — código escrito y con guarda de datos verificada, pendiente de correr a éxito hasta acumular ≥2 días de historia (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
+- [x] **Fase 5 — ML + MLflow.** Pipeline completo: feature table (`mlops.features_price_daily`, actualizada por `crypto_gold_daily_trigger`) + dos notebooks de entrenamiento (clasificador de dirección y regresor de retorno) con baseline y alias `champion` condicionado a superarlo. Primera corrida real con 8 días de historia: ningún modelo le ganó al baseline, así que no hay `champion` todavía. Se retoma con más historia y features estacionarias (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
 - [x] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y chain de RAG con LangChain (`DatabricksVectorSearch` + `ChatDatabricks`) registrada en UC con alias `champion` (ver [`notebooks/06_rag/README.md`](notebooks/06_rag/README.md)).
 - [x] **Fase 7 — Agente de IA.** 4 UC Functions (tools SQL sobre Gold) + retrieval RAG (Vector Search) armadas con LangGraph, registradas en UC con alias `champion`, y **desplegadas en un Model Serving endpoint verificado** (`crypto_agent_endpoint`) — ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md) para la saga completa del deploy (5 causas de fallo distintas, desde cupo de compute hasta conflictos reales de dependencias entre `langchain`/`langgraph`/`openai-agents`).
 - [x] **Fase 8 — Orquestación + documentación.** 3 Jobs de Databricks Workflows (`crypto_prices_pipeline` cada 30 min, `crypto_news_pipeline` 2x/día con sync condicional del índice RAG, `gold_daily_trigger` 1x/día) con tasks encadenadas por dependencias, horarios escalonados, y lineage bronze→silver→gold→genai verificado en Catalog Explorer — ver [`notebooks/08_orchestration/README.md`](notebooks/08_orchestration/README.md).
@@ -100,18 +100,19 @@ repo como *Source* (`.py` / `.sql`).
 
 ## Estado actual
 
-**Fases 0, 1, 2, 3, 4, 6, 7 y 8 completas; Fase 5 en curso, con un paso bloqueado por un factor
-externo (no por diseño).**
+**Fases 0 a 8 completas. En la Fase 5 el pipeline de ML está armado y corre, pero los modelos
+todavía no superan a su baseline con la historia disponible.**
 `silver.crypto_prices`, `silver.dim_asset` (SCD Type 2 con `MERGE INTO` manual) y `silver.crypto_news`
 (dedup + scraping con `trafilatura`) listos. Se evaluó también una versión declarativa de `dim_asset`
 con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines), pero se descartó: quedaba bloqueada
 repetidamente por el cupo diario de compute serverless de Free Edition antes de poder cerrar el
 troubleshooting, y era una segunda implementación redundante de algo que la versión manual ya
 resuelve — no aporta nada nuevo al objetivo del proyecto. Los 3 marts de Gold, el AI/BI Dashboard y
-el Genie Space están armados y verificados. La feature table de Fase 5 (`mlops.features_price_daily`,
-con `FeatureEngineeringClient`) funciona; el entrenamiento del modelo está escrito con una guarda de
-datos verificada, pero necesita ≥2 días de historia en `gold.asset_daily_summary` que ya se están
-acumulando solos gracias a la Fase 8. La Fase 6 (RAG) está completa: chunking (`genai.news_chunks`,
+el Genie Space están armados y verificados. La Fase 5 (ML) tiene la feature table
+(`mlops.features_price_daily`, con `FeatureEngineeringClient`, actualizada a diario por Fase 8) y dos
+notebooks de entrenamiento con baseline. En la primera corrida real (8 días de historia) ni el
+clasificador de dirección ni el regresor de retorno superaron a su baseline, por lo que el alias
+`champion` no se movió: el guard funcionó como se diseñó. Se retoma con más historia. La Fase 6 (RAG) está completa: chunking (`genai.news_chunks`,
 368 chunks), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y una chain de
 LangChain (empaquetada como Models from Code) registrada en UC con alias `champion`, verificada
 citando fuentes reales del corpus. La Fase 7 (Agente) está completa: 4 UC Functions + retrieval RAG
@@ -128,5 +129,6 @@ con datos reales del agente, con un ajuste de UI pendiente. La Fase 8 (Orquestac
 escalonados, sync condicional del índice RAG, y lineage bronze→silver→gold→genai verificado en
 Catalog Explorer — historia completa en
 [`notebooks/08_orchestration/README.md`](notebooks/08_orchestration/README.md). Próximo: terminar el
-ajuste de UI de la Databricks App, armar el espejo en Next.js/Vercel para la demo pública, o retomar
-el pendiente de Fase 5 cuando se destrabe solo con la historia ya acumulándose.
+ajuste de UI de la Databricks App, sumar la pestaña de Dashboard, armar el espejo en Next.js/Vercel
+para la demo pública, y retomar los modelos de Fase 5 en 2-3 semanas con features estacionarias y
+validación walk-forward.
