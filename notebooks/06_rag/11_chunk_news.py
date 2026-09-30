@@ -73,3 +73,7 @@ df_chunks = spark.createDataFrame(records, schema=CHUNKS_SCHEMA).withColumn(
     "_chunks_processed_at", F.current_timestamp()
 )
 df_chunks.write.option("delta.enableChangeDataFeed", "true").mode("append").saveAsTable(CHUNKS_TABLE)
+
+# COMMAND ----------
+
+dbutils.jobs.taskValues.set(key="new_chunks_count", value=len(records))
