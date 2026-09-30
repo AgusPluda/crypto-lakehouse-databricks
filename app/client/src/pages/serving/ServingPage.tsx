@@ -7,12 +7,37 @@ interface ChatChoice {
   message?: { content?: string };
 }
 
+interface AgentMessage {
+  type?: string;
+  role?: string;
+  content?: unknown;
+}
+
 interface ChatResponse {
   choices?: ChatChoice[];
+  messages?: AgentMessage[];
+}
+
+function contentToText(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => (typeof part === 'string' ? part : ((part as { text?: string })?.text ?? '')))
+      .join('');
+  }
+  return '';
 }
 
 function extractContent(data: unknown): string {
   const resp = data as ChatResponse;
+
+  // Agente LangGraph: la respuesta final es el último mensaje 'ai' con texto
+  // (los mensajes 'ai' que solo llaman tools vienen con content vacío).
+  const finalAnswer = [...(resp?.messages ?? [])]
+    .reverse()
+    .find((m) => (m.type === 'ai' || m.role === 'assistant') && contentToText(m.content).trim());
+  if (finalAnswer) return contentToText(finalAnswer.content);
+
   return resp?.choices?.[0]?.message?.content ?? JSON.stringify(data);
 }
 
