@@ -26,7 +26,7 @@ RETURN
 
 -- COMMAND ----------
 
--- Top N activos por price_change_pct descendente (gainers)
+-- Top N activos por price_change_pct descendente (gainers) del último día cerrado
 
 CREATE OR REPLACE FUNCTION crypto_lakehouse.genai.get_top_gainers(
     n_results INT COMMENT 'Número de activos a mostrar'
@@ -34,17 +34,18 @@ CREATE OR REPLACE FUNCTION crypto_lakehouse.genai.get_top_gainers(
 RETURNS TABLE (
     symbol STRING,
     name STRING,
-    price_change_pct DOUBLE
+    price_change_pct DOUBLE COMMENT 'Variación open→close del último día cerrado, en fracción (0.01 = 1%)'
 )
-COMMENT 'Devuelve los N activos con mayor variación de precio en los últimos 24hs, orden decendente (gainers).'
+COMMENT 'Devuelve los N activos que más subieron en el último día cerrado (variación open→close de ese día, no de las últimas 24hs móviles), orden descendente (gainers). price_change_pct es una fracción: 0.01 equivale a 1%.'
 RETURN
   WITH ranked AS (
-    SELECT 
+    SELECT
         symbol,
-        name, 
+        name,
         price_change_pct,
         ROW_NUMBER() OVER (ORDER BY price_change_pct DESC) AS rn
     FROM crypto_lakehouse.gold.asset_daily_summary
+    WHERE trade_date = (SELECT MAX(trade_date) FROM crypto_lakehouse.gold.asset_daily_summary)
   )
   SELECT 
     symbol,
@@ -55,7 +56,7 @@ RETURN
 
 -- COMMAND ----------
 
--- Top N activos por price_change_pct ascendente (losers)
+-- Top N activos por price_change_pct ascendente (losers) del último día cerrado
 
 CREATE OR REPLACE FUNCTION crypto_lakehouse.genai.get_top_losers(
     n_results INT COMMENT 'Número de activos a mostrar'
@@ -63,17 +64,18 @@ CREATE OR REPLACE FUNCTION crypto_lakehouse.genai.get_top_losers(
 RETURNS TABLE (
     symbol STRING,
     name STRING,
-    price_change_pct DOUBLE
+    price_change_pct DOUBLE COMMENT 'Variación open→close del último día cerrado, en fracción (0.01 = 1%)'
 )
-COMMENT 'Devuelve los N activos con mayor variación de precio en los últimos 24hs, orden ascendente (losers).'
+COMMENT 'Devuelve los N activos que más bajaron en el último día cerrado (variación open→close de ese día, no de las últimas 24hs móviles), orden ascendente (losers). price_change_pct es una fracción: -0.01 equivale a -1%.'
 RETURN
     WITH ranked AS (
-        SELECT 
+        SELECT
             symbol,
-            name, 
+            name,
             price_change_pct,
             ROW_NUMBER() OVER (ORDER BY price_change_pct ASC) AS rn
         FROM crypto_lakehouse.gold.asset_daily_summary
+        WHERE trade_date = (SELECT MAX(trade_date) FROM crypto_lakehouse.gold.asset_daily_summary)
     )
   SELECT 
     symbol,

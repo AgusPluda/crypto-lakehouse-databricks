@@ -62,8 +62,19 @@ SELECT
   d.rank_close,
   d.n_snapshots
 FROM daily d
-LEFT JOIN crypto_lakehouse.silver.dim_asset a
-  ON d.asset_id = a.asset_id AND a.is_current = true
+LEFT JOIN (
+  -- última versión conocida de cada activo, esté o no en el top 25 hoy: un activo que
+  -- entra y sale del ranking no tiene fila is_current pero sí historial de símbolo/nombre
+  SELECT asset_id, symbol, name
+  FROM (
+    SELECT
+      asset_id, symbol, name,
+      ROW_NUMBER() OVER (PARTITION BY asset_id ORDER BY valid_from DESC) AS rn
+    FROM crypto_lakehouse.silver.dim_asset
+  )
+  WHERE rn = 1
+) a
+  ON d.asset_id = a.asset_id
 ORDER BY d.trade_date, d.rank_close;
 
 -- COMMAND ----------
@@ -71,6 +82,13 @@ ORDER BY d.trade_date, d.rank_close;
 -- cantidad de filas (debería ser ~25 activos × 1 día, con la data que tenemos hoy)
 SELECT COUNT(*), COUNT(DISTINCT asset_id), COUNT(DISTINCT trade_date)
 FROM crypto_lakehouse.gold.asset_daily_summary;
+
+-- filas sin symbol: tiene que dar 0
+SELECT COUNT(*) AS filas_sin_symbol
+FROM crypto_lakehouse.gold.asset_daily_summary
+WHERE symbol IS NULL;
+
+-- COMMAND ----------
 
 -- chequeo puntual: bitcoin
 -- SELECT * FROM crypto_lakehouse.gold.asset_daily_summary WHERE asset_id = 'bitcoin';
