@@ -98,7 +98,7 @@ export default function Home() {
             Databricks Free Edition · Unity Catalog
           </span>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Crypto Lakehouse</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
+          <p className="text-lg text-muted-foreground max-w-4xl mx-auto text-balance">
             Pipeline de datos end-to-end sobre el mercado cripto: ingesta desde CoinGecko y RSS, arquitectura medallion,
             ML, RAG y un agente de IA que responde con datos reales.
           </p>

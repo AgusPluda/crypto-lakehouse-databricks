@@ -86,7 +86,7 @@ export function HomePage() {
       <section className="text-center space-y-4">
         <Badge variant="outline">Databricks Free Edition · Unity Catalog</Badge>
         <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">Crypto Lakehouse</h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
+        <p className="text-lg text-muted-foreground max-w-4xl mx-auto text-balance">
           Pipeline de datos end-to-end sobre el mercado cripto: ingesta desde CoinGecko y RSS, arquitectura medallion,
           ML, RAG y un agente de IA que responde con datos reales.
         </p>
