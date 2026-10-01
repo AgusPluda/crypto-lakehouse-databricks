@@ -33,13 +33,22 @@ El objetivo fue ejercitar la mayor superficie posible de la plataforma, no armar
 
 ## Capturas
 
+### Databricks App
+
+Inicio, dashboard AI/BI embebido (con Genie para preguntar sobre los gráficos) y el agente, con las
+herramientas que consultó en cada respuesta.
+
+![Inicio de la Databricks App](docs/images/app/home.png)
+
+![Dashboard AI/BI dentro de la App](docs/images/app/dashboard.png)
+
+![El agente respondiendo con precios y noticias](docs/images/app/agente.png)
+
 ### Espejo público (Next.js · Vercel)
 
 ![Inicio de la web pública](docs/images/web/home.png)
 
 ![El agente respondiendo con la herramienta que consultó](docs/images/web/agent.png)
-
-<!-- Capturas de la Databricks App y del dashboard: pendientes -->
 
 ## Arquitectura
 
