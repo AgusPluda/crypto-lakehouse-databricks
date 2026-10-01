@@ -1,5 +1,6 @@
 import { Skeleton } from '@databricks/appkit-ui/react';
 import { ExternalLink } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useState } from 'react';
 
 const WORKSPACE_URL = 'https://dbc-80cab894-0807.cloud.databricks.com';
@@ -11,9 +12,13 @@ const DASHBOARD_URL = `${WORKSPACE_URL}/dashboardsv3/${DASHBOARD_ID}/published?o
 
 export function DashboardPage() {
   const [loaded, setLoaded] = useState(false);
+  // El embed de AI/BI siempre se muestra en modo claro. En el tema oscuro se invierte con un filtro y se rota el
+  // tono 180° para que los colores de los gráficos conserven su matiz.
+  const { resolvedTheme } = useTheme();
+  const darkFilter = resolvedTheme === 'dark' ? 'invert(0.92) hue-rotate(180deg)' : undefined;
 
   return (
-    <div className="space-y-4 w-full max-w-7xl mx-auto">
+    <div className="space-y-4 w-full">
       <div className="flex items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
@@ -32,7 +37,7 @@ export function DashboardPage() {
         </a>
       </div>
 
-      <div className="relative rounded-xl border bg-white overflow-hidden shadow-sm h-[calc(100vh-12rem)] min-h-[600px]">
+      <div className="relative rounded-xl border bg-card overflow-hidden shadow-sm h-[calc(100vh-12rem)] min-h-[600px]">
         {!loaded && (
           <div className="absolute inset-0 p-6 space-y-4 bg-card">
             <Skeleton className="h-8 w-1/3" />
@@ -49,6 +54,7 @@ export function DashboardPage() {
           title="Crypto Lakehouse - Overview"
           src={EMBED_URL}
           onLoad={() => setLoaded(true)}
+          style={{ filter: darkFilter }}
           className="w-full h-full"
         />
       </div>
