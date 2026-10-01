@@ -15,8 +15,8 @@ Lakehouse de punta a punta sobre **Databricks Free Edition**: ingesta recurrente
 (Bronze → Silver → Gold) construida con **PySpark** y **Delta Lake**, y sobre los marts Gold tres
 consumidores gobernados dentro del **mismo Unity Catalog**: un **dashboard AI/BI**, un **modelo de
 ML** reentrenado periódicamente con **MLflow**, y un **agente de IA** (tools SQL + RAG sobre Vector
-Search) servido en una **Databricks App (Gradio)** y espejado en **Next.js/Vercel** para la demo
-pública.
+Search) servido en una **Databricks App** (AppKit, React) junto al dashboard embebido, y espejado
+en **Next.js/Vercel** para la demo pública: https://crypto-lakehouse-databricks.vercel.app/
 
 Es el proyecto demostrativo con el que cierro el learning path oficial de Databricks Academy. El
 objetivo explícito es ejercitar la mayor superficie posible de la plataforma —no un pipeline chico—
@@ -46,7 +46,7 @@ GOLD     marts agregados para el dashboard y las features del ML     (Fase 3 —
       └──▶  RAG  · schema genai · Vector Search sobre noticias → chain LangChain → Agente (tools SQL + retrieval)
                         │
                         ▼
-              Databricks App (Gradio, chat interno)   +   espejo en Next.js/Vercel (demo pública)
+              Databricks App (inicio + dashboard + agente)   +   espejo en Next.js/Vercel (demo pública)
 ```
 
 Todo el lineage —de la tabla Bronze al agente servido— vive dentro de un único catalog de Unity
@@ -89,7 +89,8 @@ notebooks/
   06_rag/            Fase 6 — vector search + chain
   07_agent/          Fase 7 — agente
   08_orchestration/  Fase 8 — jobs
-app/                 Databricks App (Gradio) + espejo en Next.js/Vercel
+app/                 Databricks App (AppKit: inicio, dashboard embebido, agente)
+web/                 Espejo público en Next.js para Vercel (inicio + chat del agente)
 dashboards/          Exports de los AI/BI Dashboards y notas de los Genie Spaces
 docs/
   images/            Capturas para el README
@@ -124,11 +125,27 @@ dependencias entre `langchain`/`langgraph`/`langgraph-prebuilt`/`openai-agents`,
 credenciales declaradas para los recursos del agente) — historia completa en
 [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md). Ya hay una Databricks App
 (`crypto-agent-chat`, armada desde el template Node.js "AppKit - Serving") desplegada y respondiendo
-con datos reales del agente, con un ajuste de UI pendiente. La Fase 8 (Orquestación) está completa:
+con datos reales del agente; tiene tres pestañas (inicio, dashboard AI/BI embebido y agente con
+markdown y tools consultadas) y tema oscuro/claro. Además hay un espejo público en Next.js
+(`web/`, desplegado en Vercel) con inicio y chat: llama al endpoint con OAuth M2M de un Service
+Principal con permiso de solo consulta, con keepalive en streaming y rate limiting. Una lección
+del camino: recrear una UC Function con `CREATE OR REPLACE` invalida las credenciales que el
+endpoint resolvió al desplegar, y el endpoint deja de cargar hasta redeployarlo. La Fase 8 (Orquestación) está completa:
 3 Jobs de Databricks Workflows cubren todo el pipeline con dependencias encadenadas, horarios
 escalonados, sync condicional del índice RAG, y lineage bronze→silver→gold→genai verificado en
 Catalog Explorer — historia completa en
-[`notebooks/08_orchestration/README.md`](notebooks/08_orchestration/README.md). Próximo: terminar el
-ajuste de UI de la Databricks App, sumar la pestaña de Dashboard, armar el espejo en Next.js/Vercel
-para la demo pública, y retomar los modelos de Fase 5 en 2-3 semanas con features estacionarias y
-validación walk-forward.
+[`notebooks/08_orchestration/README.md`](notebooks/08_orchestration/README.md). Próximo: retomar los
+modelos de Fase 5 en 2-3 semanas con features estacionarias y validación walk-forward, y sumar una
+pestaña de Forecast a la App cuando exista un `champion`.
+
+## Trabajo futuro
+
+- **Forecast:** retomar los modelos de la Fase 5 con más historia, features estacionarias y validación
+  walk-forward, y servir el `champion` en el último endpoint disponible de Free Edition. Sumar entonces
+  una pestaña de Forecast a la App.
+- **Datos reales en el Home público:** un task del Job diario que genere un `kpis.json` (KPIs del
+  mercado, movers del día, leaderboard top 25, salud del scraping y sparklines) y lo entregue a la web
+  de Vercel, sin darle al Service Principal permisos sobre tablas ni un SQL warehouse. Se mostraría
+  como foto del último día cerrado.
+- **Rate limiting compartido:** hoy el límite de la demo pública es en memoria, por instancia; moverlo
+  a un almacenamiento compartido (por ejemplo Upstash) si hiciera falta.

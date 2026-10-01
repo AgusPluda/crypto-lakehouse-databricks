@@ -1,4 +1,4 @@
-import { ArrowRight, Bot, ImageIcon, LayoutDashboard, TrendingUp } from "lucide-react";
+import { ArrowRight, Bot, LayoutDashboard, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { PALETTE, REPO_URL } from "@/lib/site";
 
@@ -140,14 +140,6 @@ export default function Home() {
             description="Predicción de retorno diario por activo. Se habilita cuando un modelo supere a su baseline."
             note="Próximamente"
           />
-        </section>
-
-        <section className="rounded-xl border border-dashed border-border p-8 text-center space-y-2 text-muted-foreground">
-          <ImageIcon className="h-8 w-8 mx-auto" />
-          <p className="text-sm">
-            El dashboard AI/BI requiere iniciar sesión en Databricks, por eso no se puede embeber acá. Se ve completo en
-            la App de Databricks y en el repositorio.
-          </p>
         </section>
 
         <footer className="space-y-3 text-center">
