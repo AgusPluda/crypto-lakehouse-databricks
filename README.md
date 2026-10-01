@@ -164,3 +164,11 @@ Cada carpeta de `notebooks/` tiene su propio README con las decisiones de esa fa
 **Agustín Pluda** · [GitHub](https://github.com/AgusPluda)
 
 Proyecto de portfolio con el que cierro el learning path oficial de Databricks Academy.
+
+🏆 **7 de septiembre de 2026:** completé el 100 % de los cursos del learning path de Databricks Academy.
+
+![Los siete cursos del learning path al 100 %](docs/images/progress/100_pct_courses_completed.png)
+
+🏆 **1 de octubre de 2026:** desbloqueé todos los logros de Databricks Free Edition.
+
+<img src="docs/images/progress/100_pct_achievements.png" alt="Todos los logros de Databricks Free Edition desbloqueados" width="480">
