@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><body style="background:#222;color:#eee;font:14px sans-serif"><pre id="log">cargando…</pre>
+<script type="module">
+const log = (m) => (document.getElementById("log").textContent += "\n" + m);
+window.EXCALIDRAW_ASSET_PATH = "https://esm.sh/@excalidraw/excalidraw@0.17.6/dist/";
+try {
+  const mod = await import("https://esm.sh/@excalidraw/excalidraw@0.17.6?deps=react@18.2.0,react-dom@18.2.0"); const { exportToBlob } = mod.default;
+  log("excalidraw cargado");
+  for (const name of ["portada", "system_overview", "agent_architecture", "jobs_dag"]) {
+    const scene = await (await fetch(name + ".excalidraw")).json();
+    const opts = {
+      elements: scene.elements,
+      appState: { ...scene.appState, exportBackground: true, exportWithDarkMode: false },
+      files: scene.files || {},
+      mimeType: "image/png",
+      exportPadding: 40,
+      getDimensions: (w, h) => ({ width: w * 2, height: h * 2, scale: 2 }),
+    };
+    await exportToBlob(opts);
+    await new Promise((r) => setTimeout(r, 1500));
+    const blob = await exportToBlob(opts);
+    await fetch("/save/" + name + ".png", { method: "POST", body: blob });
+    log("ok " + name + " " + blob.size);
+  }
+  log("LISTO");
+} catch (e) { log("ERROR " + e.message); }
+</script>

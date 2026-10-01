@@ -11,9 +11,9 @@ OUT = os.path.dirname(HERE)
 def portada():
     d = D()
     d.label(100, 110, 1400, "Crypto Lakehouse", size=76, color="#f4f4fa")
-    d.label(100, 215, 1500, "Pipeline de datos end-to-end en Databricks Free Edition", size=30, color="#b8b8cc")
-    d.label(100, 265, 1500, "Medallion (Bronze · Silver · Gold)  →  ML  →  RAG  →  Agente de IA  →  Databricks App", size=20, color=MUTED)
-    d.label(100, 310, 1500, "Agustín Pluda · portfolio de Data Engineering / Data Science", size=18, color=MUTED)
+    d.label(100, 215, 1700, "Pipeline de datos end-to-end en Databricks Free Edition", size=38, color="#b8b8cc")
+    d.label(100, 275, 1700, "Medallion (Bronze · Silver · Gold)  →  ML  →  RAG  →  Agente de IA  →  Databricks App + web pública", size=27, color=MUTED)
+    d.label(100, 325, 1500, "Agustín Pluda", size=24, color=MUTED)
 
     y = 470
     d.box("raw", 100, y, 200, 90, "Raw data\nCoinGecko API\nRSS feeds", "raw", 16)
@@ -21,23 +21,27 @@ def portada():
     d.box("silver", 600, y, 200, 90, "Silver\nlimpieza · SCD2\ndedup", "silver", 16)
     d.box("gold", 850, y, 200, 90, "Gold\nagregados\npara consumo", "gold", 16)
     d.box("ml", 1150, 380, 270, 80, "ML\nforecast + dirección", "ml", 16)
-    d.box("dash", 1150, 480, 270, 80, "Dashboard\nAI/BI en modo live", "dash", 16)
+    d.box("dash", 1150, 480, 270, 80, "Dashboard\nAI/BI + Genie", "dash", 16)
     d.box("agent", 1150, 580, 270, 80, "Agente IA\nLangGraph + RAG", "agent", 16)
-    d.box("app", 1500, 580, 230, 80, "Databricks App\ncrypto-agent-chat", "app", 16)
+    d.box("app", 1500, 520, 230, 80, "Databricks App\ninicio · dashboard · agente", "app", 15)
+    d.box("web", 1500, 640, 230, 80, "Espejo web público\nNext.js · Vercel", "app", 15)
     d.link("raw", "r", "bronze", "l")
     d.link("bronze", "r", "silver", "l")
     d.link("silver", "r", "gold", "l")
     d.link("gold", "r", "ml", "l")
     d.link("gold", "r", "dash", "l")
     d.link("gold", "r", "agent", "l")
-    d.link("agent", "r", "app", "l")
+    d.link("dash", "r", "app", "l")
+    d.link("agent", "r", "app", "b", via=[(1615, 620)])
+    d.link("ml", "r", "app", "t", via=[(1615, 420)], dashed=True, color=PAL["ml"][0])
+    d.link("agent", "b", "web", "l", via=[(1285, 680)])
 
-    d.label(100, 715, 400, "Stack", size=16, color=MUTED)
+    d.label(100, 790, 400, "Stack", size=16, color=MUTED)
     stack = ["Delta Lake", "Unity Catalog", "Databricks Jobs", "MLflow", "Vector Search",
-             "LangGraph", "Model Serving", "AppKit"]
+             "LangGraph", "Model Serving", "AppKit", "Next.js"]
     x = 100
     for i, s in enumerate(stack):
-        d.box(f"s{i}", x, 745, 165, 46, s, "neutral", 15)
+        d.box(f"s{i}", x, 820, 165, 46, s, "neutral", 15)
         x += 185
     d.save(os.path.join(OUT, "portada.excalidraw"))
 
@@ -71,10 +75,11 @@ def system_overview():
     d.box("crypto_prices", C2, 380, 230, 70, "silver.crypto_prices\n(transform_crypto_prices)", "silver")
     d.box("dim_asset", C2, 500, 230, 70, "silver.dim_asset · SCD2\n(transform_dim_asset)", "silver")
     d.box("dim_current", C3, 430, 240, 70, "gold.dim_asset_current\n(gold_dim_asset_current)", "gold")
-    d.box("dashboard", C4, 390, 250, 70, "AI/BI Dashboard\nmodo live", "dash")
+    d.box("dashboard", C4, 390, 250, 70, "AI/BI Dashboard\n+ Genie Space", "dash")
     d.box("uc", C4, 550, 250, 70, "4 UC Functions\ncrypto_lakehouse.genai", "agent")
     d.box("agent", C5, 445, 220, 110, "Agente IA\nLangGraph ReAct\n4 UC Functions + RAG\nModel Serving endpoint", "agent", 13)
-    d.box("app", C6, 460, 220, 80, "Databricks App\ncrypto-agent-chat\n(AppKit)", "app", 13)
+    d.box("app", C6, 460, 220, 80, "Databricks App\ninicio · dashboard · agente\n(AppKit)", "app", 13)
+    d.box("web", C6, 560, 220, 70, "Espejo web público\nNext.js · Vercel", "app", 13)
 
     # band 3: news
     d.box("rss", C0, 740, 190, 80, "RSS feeds\nCointelegraph · Decrypt\nCoinDesk", "raw")
@@ -112,10 +117,11 @@ def system_overview():
     d.link("agent", "r", "app", "l", color=purple)
 
     # planned (dashed)
-    d.link("dashboard", "r", "app", "l", via=[(1655, 425), (1655, 500)], dashed=True, color=g_dash)
+    d.link("dashboard", "r", "app", "l", via=[(1655, 425), (1655, 500)], color=g_dash, label="embebido", label_at=(1572, 395))
     d.link("models", "r", "app", "l", via=[(1655, 175), (1655, 500)], dashed=True, color=PAL["ml"][0])
 
-    d.legend(40, 990, extra="línea punteada = planeado (tabs Dashboard y Forecast en la App)")
+    d.link("agent", "b", "web", "l", via=[(1520, 595)], color=purple, label="OAuth M2M", label_at=(1535, 568))
+    d.legend(40, 990, extra="línea punteada = planeado (pestaña Forecast en la App)")
     d.save(os.path.join(OUT, "system_overview.excalidraw"))
 
 
@@ -124,7 +130,7 @@ def agent_flow():
     d.label(40, 8, 1500, "Agente IA — recorrido de una consulta", size=28, color="#f4f4fa")
 
     d.box("user", 40, 290, 190, 80, "Usuario\n\"¿Qué se dice sobre\nBitcoin en las noticias?\"", "neutral", 13)
-    d.box("app", 270, 290, 190, 80, "Databricks App\ncrypto-agent-chat", "app", 14)
+    d.box("app", 270, 290, 190, 80, "Databricks App\no web en Vercel", "app", 14)
     d.box("endpoint", 500, 290, 200, 80, "Model Serving\ncrypto_agent_endpoint", "agent", 14)
 
     d.container(740, 110, 330, 520, None, stroke=PAL["agent"][1])
@@ -159,12 +165,12 @@ def agent_flow():
 
     d.label(40, 660, 800, "Recorrido", size=22, color="#f4f4fa")
     steps = (
-        "1. El usuario escribe en el chat de la App.\n"
-        "2. La App invoca crypto_agent_endpoint (Model Serving).\n"
+        "1. El usuario escribe en el chat (Databricks App o web pública).\n"
+        "2. El cliente invoca crypto_agent_endpoint (Model Serving).\n"
         "3. El LLM lee el system prompt y decide qué tool necesita para responder.\n"
         "4. Llama a una UC Function (datos de precios, Gold) o a search_crypto_news (RAG sobre noticias).\n"
         "5. La tool devuelve datos reales; el LLM puede encadenar otra tool o responder.\n"
-        "6. Responde citando los links completos y la respuesta vuelve a la App."
+        "6. Responde citando los links completos y la respuesta vuelve al chat."
     )
     d.label(40, 700, 1300, steps, size=17, color=LIGHT)
     d.label(40, 850, 1500,

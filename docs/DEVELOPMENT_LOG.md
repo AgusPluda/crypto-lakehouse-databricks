@@ -1,4 +1,7 @@
-# Crypto Lakehouse en Databricks
+# Bitácora de desarrollo — Crypto Lakehouse
+
+> Este es el README original del proyecto, conservado como registro de cómo se fue construyendo (fases,
+> decisiones y estado en cada momento). La presentación del proyecto está en el [README principal](../README.md).
 
 ![Databricks](https://img.shields.io/badge/Databricks-Free%20Edition-FF3621?logo=databricks&logoColor=white)
 ![Delta Lake](https://img.shields.io/badge/Delta%20Lake-Medallion-00ADD8?logo=delta&logoColor=white)
@@ -69,13 +72,13 @@ mostrar permisos distintos por capa:
 
 - [x] **Fase 0 — Fundacional.** Catalog `crypto_lakehouse` + 5 schemas. Repo sincronizado con Databricks Repos.
 - [x] **Fase 1 — Ingesta Bronze.** Precios de CoinGecko (`/coins/markets`, top 25 dinámico) y noticias RSS.
-- [x] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (`MERGE INTO` manual), scraping de artículos completos para el corpus del RAG. Se evaluó también una versión declarativa con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines) pero se descartó tras un troubleshooting largo y repetitivo — ver [`notebooks/02_silver/README.md`](notebooks/02_silver/README.md).
+- [x] **Fase 2 — Silver.** Tipado y limpieza, `dim_asset` SCD Type 2 (`MERGE INTO` manual), scraping de artículos completos para el corpus del RAG. Se evaluó también una versión declarativa con `AUTO CDC FROM SNAPSHOT` (Lakeflow Declarative Pipelines) pero se descartó tras un troubleshooting largo y repetitivo — ver [`notebooks/02_silver/README.md`](../notebooks/02_silver/README.md).
 - [x] **Fase 3 — Gold.** Marts agregados: `asset_daily_summary`, `dim_asset_current`, `news_pipeline_health`.
 - [x] **Fase 4 — Visualización.** AI/BI Dashboard nativo (`dashboards/crypto_lakehouse_overview.lvdash.json`) + Genie Space ("Cryptocurrency Market Overview") listos. La Databricks App (Gradio) se arma cuando exista el agente de la Fase 7.
-- [x] **Fase 5 — ML + MLflow.** Pipeline completo: feature table (`mlops.features_price_daily`, actualizada por `crypto_gold_daily_trigger`) + dos notebooks de entrenamiento (clasificador de dirección y regresor de retorno) con baseline y alias `champion` condicionado a superarlo. Primera corrida real con 8 días de historia: ningún modelo le ganó al baseline, así que no hay `champion` todavía. Se retoma con más historia y features estacionarias (ver [`notebooks/05_ml/README.md`](notebooks/05_ml/README.md)).
-- [x] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y chain de RAG con LangChain (`DatabricksVectorSearch` + `ChatDatabricks`) registrada en UC con alias `champion` (ver [`notebooks/06_rag/README.md`](notebooks/06_rag/README.md)).
-- [x] **Fase 7 — Agente de IA.** 4 UC Functions (tools SQL sobre Gold) + retrieval RAG (Vector Search) armadas con LangGraph, registradas en UC con alias `champion`, y **desplegadas en un Model Serving endpoint verificado** (`crypto_agent_endpoint`) — ver [`notebooks/07_agent/README.md`](notebooks/07_agent/README.md) para la saga completa del deploy (5 causas de fallo distintas, desde cupo de compute hasta conflictos reales de dependencias entre `langchain`/`langgraph`/`openai-agents`).
-- [x] **Fase 8 — Orquestación + documentación.** 3 Jobs de Databricks Workflows (`crypto_prices_pipeline` cada 30 min, `crypto_news_pipeline` 2x/día con sync condicional del índice RAG, `gold_daily_trigger` 1x/día) con tasks encadenadas por dependencias, horarios escalonados, y lineage bronze→silver→gold→genai verificado en Catalog Explorer — ver [`notebooks/08_orchestration/README.md`](notebooks/08_orchestration/README.md).
+- [x] **Fase 5 — ML + MLflow.** Pipeline completo: feature table (`mlops.features_price_daily`, actualizada por `crypto_gold_daily_trigger`) + dos notebooks de entrenamiento (clasificador de dirección y regresor de retorno) con baseline y alias `champion` condicionado a superarlo. Primera corrida real con 8 días de historia: ningún modelo le ganó al baseline, así que no hay `champion` todavía. Se retoma con más historia y features estacionarias (ver [`notebooks/05_ml/README.md`](../notebooks/05_ml/README.md)).
+- [x] **Fase 6 — RAG.** Chunking del corpus (`genai.news_chunks`), índice de Vector Search (`genai.news_chunks_index`) sincronizado, y chain de RAG con LangChain (`DatabricksVectorSearch` + `ChatDatabricks`) registrada en UC con alias `champion` (ver [`notebooks/06_rag/README.md`](../notebooks/06_rag/README.md)).
+- [x] **Fase 7 — Agente de IA.** 4 UC Functions (tools SQL sobre Gold) + retrieval RAG (Vector Search) armadas con LangGraph, registradas en UC con alias `champion`, y **desplegadas en un Model Serving endpoint verificado** (`crypto_agent_endpoint`) — ver [`notebooks/07_agent/README.md`](../notebooks/07_agent/README.md) para la saga completa del deploy (5 causas de fallo distintas, desde cupo de compute hasta conflictos reales de dependencias entre `langchain`/`langgraph`/`openai-agents`).
+- [x] **Fase 8 — Orquestación + documentación.** 3 Jobs de Databricks Workflows (`crypto_prices_pipeline` cada 30 min, `crypto_news_pipeline` 2x/día con sync condicional del índice RAG, `gold_daily_trigger` 1x/día) con tasks encadenadas por dependencias, horarios escalonados, y lineage bronze→silver→gold→genai verificado en Catalog Explorer — ver [`notebooks/08_orchestration/README.md`](../notebooks/08_orchestration/README.md).
 
 ## Cómo está organizado el repo
 
@@ -123,7 +126,7 @@ de precios (tool SQL) como de noticias (RAG con citas de fuentes reales). El dep
 versiones del modelo y cinco causas de fallo distintas (cupo de compute, conflictos reales de
 dependencias entre `langchain`/`langgraph`/`langgraph-prebuilt`/`openai-agents`, y falta de
 credenciales declaradas para los recursos del agente) — historia completa en
-[`notebooks/07_agent/README.md`](notebooks/07_agent/README.md). Ya hay una Databricks App
+[`notebooks/07_agent/README.md`](../notebooks/07_agent/README.md). Ya hay una Databricks App
 (`crypto-agent-chat`, armada desde el template Node.js "AppKit - Serving") desplegada y respondiendo
 con datos reales del agente; tiene tres pestañas (inicio, dashboard AI/BI embebido y agente con
 markdown y tools consultadas) y tema oscuro/claro. Además hay un espejo público en Next.js
@@ -134,7 +137,7 @@ endpoint resolvió al desplegar, y el endpoint deja de cargar hasta redeployarlo
 3 Jobs de Databricks Workflows cubren todo el pipeline con dependencias encadenadas, horarios
 escalonados, sync condicional del índice RAG, y lineage bronze→silver→gold→genai verificado en
 Catalog Explorer — historia completa en
-[`notebooks/08_orchestration/README.md`](notebooks/08_orchestration/README.md). Próximo: retomar los
+[`notebooks/08_orchestration/README.md`](../notebooks/08_orchestration/README.md). Próximo: retomar los
 modelos de Fase 5 en 2-3 semanas con features estacionarias y validación walk-forward, y sumar una
 pestaña de Forecast a la App cuando exista un `champion`.
 
